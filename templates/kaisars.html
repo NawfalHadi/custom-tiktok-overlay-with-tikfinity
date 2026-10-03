@@ -26,6 +26,15 @@
             white-space: nowrap;
             animation: tickerScroll 15s linear infinite;
         }
+
+        /* Efek Animasi Muncul Saat Gift Masuk */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-pop {
+            animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="w-screen h-screen flex items-end justify-between p-8 bg-transparent">
@@ -51,7 +60,8 @@
 
             <!-- LINGKARAN HIJAU & ORANYE: Username & Template Teks -->
             <div class="flex-1 bg-black/90 border-y-2 border-yellow-400 flex flex-col justify-center px-6 skew-x-[-6deg] shadow-lg">
-                <div class="text-yellow-400 font-extrabold text-base tracking-wide uppercase truncate">
+                <!-- Teks Username Dinamis -->
+                <div id="user-title" class="text-yellow-400 font-extrabold text-base tracking-wide uppercase truncate">
                     @pementolan <span class="text-white font-normal">telah menjadi kaisar</span>
                 </div>
                 <div class="text-white text-xs font-bold tracking-wider uppercase opacity-80">
@@ -64,10 +74,9 @@
 
     <!-- BAGIAN KANAN: Foto Profil (Match Parent Height) -->
     <div class="flex flex-col items-center">
-        <!-- Container diatur agar tingginya pas, dengan h-80 dan w-auto/w-64 fleksibel -->
         <div class="relative h-80 w-64 bg-black border-4 border-yellow-400 rounded-xl shadow-2xl overflow-hidden flex justify-center items-center transform translate-y-4">
-            <!-- Gambar sekarang di-set h-full agar menyesuaikan tinggi parent sepenuhnya -->
-            <img src="https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/acd581cf28c977b92fb933b3a904f3ca~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=32ad85c6&x-expires=1791219600&x-signature=blidpfhxTWS0haDD7lJWaSqfaBs%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my">
+            <!-- Gambar Profil Dinamis -->
+            <img id="user-avatar" src="https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp" alt="Profile Picture" class="h-full w-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
             <div class="absolute bottom-3 bg-red-600 text-white px-3 py-1 text-xs font-bold uppercase tracking-widest rounded shadow">
                 New Emperor 👑
@@ -75,5 +84,45 @@
         </div>
     </div>
 
+    <!-- SCRIPT WEBSOCKET UNTUK MENANGKAP GIFT -->
+    <script>
+        // Menghubungkan ke WebSocket lokal (misal TikFinity / TikTok Live Bridge)
+        const ws = new WebSocket("ws://localhost:21213/");
+
+        ws.onmessage = function (event) {
+            try {
+                const res = JSON.parse(event.data);
+                
+                // Cek apakah event yang masuk adalah 'gift'
+                if (res.event === "gift") {
+                    const d = res.data;
+                    
+                    // Filter berdasarkan ID Gift (misal: 7934 untuk "Heart Me" sesuai data sebelumnya)
+                    const giftId = d.giftId || (d.gift && d.gift.gift_id);
+                    
+                    if (giftId === 7934) {
+                        const username = d.uniqueId || d.nickname || "User";
+                        const avatarUrl = d.profilePictureUrl || (d.userDetails && d.userDetails.profilePictureUrls ? d.userDetails.profilePictureUrls[0] : "");
+
+                        // Perbarui teks username secara dinamis
+                        const userTitleEl = document.getElementById('user-title');
+                        userTitleEl.innerHTML = `@${username} <span class="text-white font-normal">telah menjadi kaisar</span>`;
+
+                        // Perbarui foto profil jika tersedia
+                        if (avatarUrl) {
+                            document.getElementById('user-avatar').src = avatarUrl;
+                        }
+
+                        console.log(`Trigger Kaisar aktif untuk: @${username} (Gift ID: ${giftId})`);
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memparsing data WebSocket:", err);
+            }
+        };
+
+        ws.onopen = () => console.log("Terhubung ke WebSocket Gift Listener!");
+        ws.onclose = () => console.log("Koneksi WebSocket terputus.");
+    </script>
 </body>
 </html>
