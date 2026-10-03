@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-900 text-white flex items-center justify-center h-screen m-0">
+    <div class="text-center p-8 bg-zinc-800 rounded-2xl shadow-xl border border-zinc-700 w-80">
+        <h1 class="text-xl font-bold mb-6 tracking-wide">Stream Controller</h1>
+        
+        <!-- Tombol Trigger Transisi -->
+        <button onclick="triggerBreak()" class="w-full py-4 bg-red-600 hover:bg-red-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm">
+            Trigger Transition 🚀
+        </button>
+    </div>
+
+    <script>
+        function triggerBreak() {
+            fetch('/breaktriger', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Transition triggered successfully!");
+                }
+            })
+            .catch(error => console.error("Error triggering transition:", error));
+        }
+    </script>
+</body>
+</html>

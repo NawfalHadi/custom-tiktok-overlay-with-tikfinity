@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Transition - Portrait</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Oswald', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .portrait-container {
+            width: 540px;
+            height: 960px;
+            position: relative;
+            overflow: hidden;
+            margin: auto;
+            background: transparent;
+        }
+        
+        .wipe-panel {
+            width: 200vw;
+            height: 120vh;
+            left: -50vw;
+            top: -10vh;
+            transform-origin: center;
+            transform: skewX(-15deg) translateX(-100%);
+            position: absolute;
+        }
+
+        @keyframes wipeDarkIn {
+            0% { transform: skewX(-15deg) translateX(-120%); }
+            12% { transform: skewX(-15deg) translateX(0%); }
+            82% { transform: skewX(-15deg) translateX(0%); }
+            95% { transform: skewX(-15deg) translateX(120%); }
+            100% { transform: skewX(-15deg) translateX(120%); }
+        }
+
+        @keyframes wipeRedIn {
+            0%, 5% { transform: skewX(-15deg) translateX(-120%); }
+            17% { transform: skewX(-15deg) translateX(0%); }
+            77% { transform: skewX(-15deg) translateX(0%); }
+            90% { transform: skewX(-15deg) translateX(120%); }
+            100% { transform: skewX(-15deg) translateX(120%); }
+        }
+
+        .animating .wipe-dark { animation: wipeDarkIn 3.5s linear forwards; }
+        .animating .wipe-red { animation: wipeRedIn 3.5s linear forwards; }
+
+        @keyframes contentFade {
+            0%, 15% { opacity: 0; }
+            18% { opacity: 1; }
+            74% { opacity: 1; }
+            77%, 100% { opacity: 0; }
+        }
+        .animating .content-layer { animation: contentFade 3.5s linear forwards; }
+
+        @keyframes bannerExpand {
+            0%, 18% { transform: scaleX(0); opacity: 0; }
+            21% { transform: scaleX(1); opacity: 1; }
+            72% { transform: scaleX(1); opacity: 1; }
+            75%, 100% { transform: scaleX(0); opacity: 0; }
+        }
+        .animating .banner-bg { animation: bannerExpand 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes textSlam {
+            0%, 21% { transform: scale(3) translateY(-20px); opacity: 0; filter: blur(15px); }
+            24% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0px); }
+            70% { transform: scale(1.03) translateY(0); opacity: 1; filter: blur(0px); }
+            73%, 100% { transform: scale(0.6) translateY(20px); opacity: 0; filter: blur(10px); }
+        }
+        .animating .main-text { animation: textSlam 3.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
+
+        @keyframes flashHit {
+            0%, 23% { opacity: 0; }
+            24% { opacity: 1; }
+            28%, 100% { opacity: 0; }
+        }
+        .animating .hit-flash { animation: flashHit 3.5s linear forwards; }
+
+        @keyframes lightSweep {
+            0%, 30% { left: -100%; opacity: 0; }
+            31% { opacity: 0.5; }
+            50% { left: 200%; opacity: 0.5; }
+            51%, 100% { left: 200%; opacity: 0; }
+        }
+        .animating .text-glare { animation: lightSweep 3.5s linear forwards; }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-content {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: tickerScroll 15s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        .globe-ring-1 { animation: spin 20s linear infinite; }
+        .globe-ring-2 { animation: spin-reverse 15s linear infinite; }
+
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .glow-text-white { text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3); }
+        .glow-text-yellow { text-shadow: 0 0 15px rgba(250, 204, 21, 0.6), 0 0 30px rgba(234, 179, 8, 0.4); }
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center">
+
+    <div class="portrait-container">
+        <div id="transition-overlay" class="absolute inset-0 z-50 overflow-hidden pointer-events-none hidden">
+            
+            <div class="wipe-panel wipe-dark bg-slate-900 border-r-[10px] border-slate-700 shadow-[20px_0_50px_rgba(0,0,0,0.8)] z-10"></div>
+            
+            <div class="wipe-panel wipe-red bg-gradient-to-r from-red-900 via-red-700 to-red-600 border-r-[15px] border-red-500 shadow-[30px_0_50px_rgba(0,0,0,0.9)] z-20">
+                <div class="absolute inset-0 scanlines opacity-50"></div>
+            </div>
+
+            <div class="content-layer absolute inset-0 z-30 flex flex-col items-center justify-center opacity-0">
+                
+                <div class="hit-flash absolute inset-0 bg-white opacity-0 z-50 pointer-events-none mix-blend-overlay"></div>
+
+                <div class="absolute inset-0 flex items-center justify-center overflow-hidden opacity-20">
+                    <div class="globe-ring-1 absolute w-[50vh] h-[50vh] border-[2px] border-dashed border-white rounded-full"></div>
+                    <div class="globe-ring-2 absolute w-[35vh] h-[35vh] border-[4px] border-dotted border-red-300 rounded-full"></div>
+                </div>
+
+                <div class="absolute top-[25%] w-full h-8 bg-black/80 border-t border-b border-red-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-left">
+                    <div class="ticker-content text-red-500 font-bold tracking-[0.2em] text-xs uppercase">
+                        BREAKING NEWS /// LIVE UPDATE /// URGENT ALERT /// DEVELOPING STORY /// BREAKING NEWS /// LIVE UPDATE /// URGENT ALERT /// DEVELOPING STORY /// 
+                    </div>
+                </div>
+
+                <div class="relative w-full flex items-center justify-center z-40">
+                    <div class="banner-bg absolute w-[110%] h-[120px] bg-black border-y-4 border-yellow-400 shadow-[0_0_50px_rgba(0,0,0,0.8)] origin-center skew-x-[-5deg]"></div>
+                    
+                    <div class="main-text relative z-10 flex flex-col items-center">
+                        <div class="relative overflow-hidden px-4 py-2">
+                            <div class="text-5xl font-black italic tracking-tighter leading-none flex flex-col items-center gap-1">
+                                <span class="text-white glow-text-white">BREAKING</span>
+                                <span class="text-yellow-400 glow-text-yellow">NEWS</span>
+                            </div>
+                            <div class="text-glare absolute top-0 w-24 h-[150%] bg-white/40 transform skew-x-[-30deg] blur-md pointer-events-none"></div>
+                        </div>
+                        <div class="bg-red-600 text-white px-4 py-0.5 text-xs font-bold tracking-widest uppercase mt-1 z-20 shadow-lg border border-red-700">
+                            Live Coverage
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-[25%] w-full h-8 bg-black/80 border-t border-b border-red-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-right">
+                    <div class="ticker-content text-white/70 font-bold tracking-[0.2em] text-xs uppercase" style="animation-direction: reverse;">
+                        STAND BY FOR UPDATES /// SPECIAL REPORT /// STAND BY FOR UPDATES /// SPECIAL REPORT /// STAND BY FOR UPDATES /// SPECIAL REPORT /// 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    // Memaksa Socket.IO menggunakan polling agar tidak diblokir Localtunnel
+    const socket = io({
+        transports: ['polling']
+    });
+
+    const overlay = document.getElementById('transition-overlay');
+    let isAnimating = false;
+
+    socket.on('trigger_transition', () => {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        overlay.classList.remove('hidden');
+        overlay.classList.remove('animating');
+        void overlay.offsetWidth; 
+        overlay.classList.add('animating');
+
+        setTimeout(() => {
+            overlay.classList.remove('animating');
+            overlay.classList.add('hidden');
+            isAnimating = false;
+        }, 3600); 
+    });
+</script>
+</body>
+</html>

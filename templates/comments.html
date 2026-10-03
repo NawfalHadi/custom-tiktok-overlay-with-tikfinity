@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comment Overlay</title>
+</head>
+<body>
+    <div id="comment-box"></div>
+
+    <script>
+        const ws = new WebSocket("ws://localhost:21213/");
+
+        ws.onmessage = function (event) {
+            const res = JSON.parse(event.data);
+            if (res.event === "chat" || res.event === "comment") {
+                const d = res.data;
+                const user = d.nickname || d.uniqueId || "User";
+                const msg = d.comment || "";
+                
+                document.getElementById('comment-box').innerHTML += `<p><b>${user}</b>: ${msg}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>
