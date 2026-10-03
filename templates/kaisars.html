@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaisar News Overlay - Horizontal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Oswald', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-content {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: tickerScroll 15s linear infinite;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex items-end justify-between p-8 bg-transparent">
+
+    <!-- BAGIAN KIRI & BAWAH: Banner Utama, Logo Ungu, Teks Hijau, & Ticker -->
+    <div class="flex flex-col w-[700px] gap-1">
+        
+        <!-- RUNNING TEXT -->
+        <div class="w-full h-7 bg-black/90 border-t border-b border-red-500 flex items-center overflow-hidden shadow-lg transform -skew-x-6">
+            <div class="ticker-content text-yellow-400 font-bold tracking-[0.2em] text-xs uppercase">
+                KAISAR NEWS EKSKLUSIF // SELAMAT DATANG KAISAR BARU // LIVE UPDATE TIKTOK LIVE // KAISAR NEWS EKSKLUSIF // 
+            </div>
+        </div>
+
+        <!-- BARIS UTAMA (Ungu, Hijau, Oranye) -->
+        <div class="flex items-stretch gap-2 w-full h-16">
+            
+            <!-- LINGKARAN UNGU: Logo / Kaisar News -->
+            <div class="bg-yellow-400 text-black px-6 flex flex-col justify-center items-center font-black italic tracking-tighter skew-x-[-6deg] shadow-lg border-2 border-black">
+                <span class="text-xs tracking-widest uppercase leading-none text-zinc-900">KAISAR</span>
+                <span class="text-2xl leading-none">NEWS</span>
+            </div>
+
+            <!-- LINGKARAN HIJAU & ORANYE: Username & Template Teks -->
+            <div class="flex-1 bg-black/90 border-y-2 border-yellow-400 flex flex-col justify-center px-6 skew-x-[-6deg] shadow-lg">
+                <div class="text-yellow-400 font-extrabold text-base tracking-wide uppercase truncate">
+                    @pementolan <span class="text-white font-normal">telah menjadi kaisar</span>
+                </div>
+                <div class="text-white text-xs font-bold tracking-wider uppercase opacity-80">
+                    SPECIAL EMPEROR BROADCAST
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- BAGIAN KANAN: Foto Profil (Match Parent Height) -->
+    <div class="flex flex-col items-center">
+        <!-- Container diatur agar tingginya pas, dengan h-80 dan w-auto/w-64 fleksibel -->
+        <div class="relative h-80 w-64 bg-black border-4 border-yellow-400 rounded-xl shadow-2xl overflow-hidden flex justify-center items-center transform translate-y-4">
+            <!-- Gambar sekarang di-set h-full agar menyesuaikan tinggi parent sepenuhnya -->
+            <img src="https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/acd581cf28c977b92fb933b3a904f3ca~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=32ad85c6&x-expires=1791219600&x-signature=blidpfhxTWS0haDD7lJWaSqfaBs%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
+            <div class="absolute bottom-3 bg-red-600 text-white px-3 py-1 text-xs font-bold uppercase tracking-widest rounded shadow">
+                New Emperor 👑
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

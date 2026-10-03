@@ -11,6 +11,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 def control_panel():
     return render_template('templates/control.html')
 
+
 @app.route('/comments-overlay')
 def comments_overlay():
     return render_template('templates/comments.html')
@@ -18,6 +19,10 @@ def comments_overlay():
 @app.route('/transition')
 def transition_overlay():
     return render_template('templates/transition.html')
+
+@app.route('/kaisars')
+def kaisars_page():
+    return render_template('templates/kaisars.html')
 
 @app.route('/breaktriger', methods=['POST'])
 def break_trigger():
