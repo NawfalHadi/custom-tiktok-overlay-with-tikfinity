@@ -20,6 +20,15 @@ def comments_overlay():
 def transition_overlay():
     return render_template('templates/transition.html')
 
+@app.route('/upeti')
+def upeti_page():
+    return render_template('templates/upeti.html')
+
+@app.route('/upetitriger', methods=['POST'])
+def upeti_trigger():
+    socketio.emit('trigger_upeti')
+    return jsonify({"status": "success"}), 200
+
 @app.route('/kaisars')
 def kaisars_page():
     return render_template('templates/kaisars.html')

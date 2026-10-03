@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upeti Moment Transition - Portrait</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Oswald', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .portrait-container {
+            width: 540px;
+            height: 960px;
+            position: relative;
+            overflow: hidden;
+            margin: auto;
+            background: transparent;
+        }
+        
+        .wipe-panel {
+            width: 200vw;
+            height: 120vh;
+            left: -50vw;
+            top: -10vh;
+            transform-origin: center;
+            transform: skewX(-15deg) translateX(-100%);
+            position: absolute;
+        }
+
+        @keyframes wipeDarkIn {
+            0% { transform: skewX(-15deg) translateX(-120%); }
+            12% { transform: skewX(-15deg) translateX(0%); }
+            82% { transform: skewX(-15deg) translateX(0%); }
+            95% { transform: skewX(-15deg) translateX(120%); }
+            100% { transform: skewX(-15deg) translateX(120%); }
+        }
+
+        @keyframes wipeEmeraldIn {
+            0%, 5% { transform: skewX(-15deg) translateX(-120%); }
+            17% { transform: skewX(-15deg) translateX(0%); }
+            77% { transform: skewX(-15deg) translateX(0%); }
+            90% { transform: skewX(-15deg) translateX(120%); }
+            100% { transform: skewX(-15deg) translateX(120%); }
+        }
+
+        .animating .wipe-dark { animation: wipeDarkIn 3.5s linear forwards; }
+        .animating .wipe-emerald { animation: wipeEmeraldIn 3.5s linear forwards; }
+
+        @keyframes contentFade {
+            0%, 15% { opacity: 0; }
+            18% { opacity: 1; }
+            74% { opacity: 1; }
+            77%, 100% { opacity: 0; }
+        }
+        .animating .content-layer { animation: contentFade 3.5s linear forwards; }
+
+        @keyframes bannerExpand {
+            0%, 18% { transform: scaleX(0); opacity: 0; }
+            21% { transform: scaleX(1); opacity: 1; }
+            72% { transform: scaleX(1); opacity: 1; }
+            75%, 100% { transform: scaleX(0); opacity: 0; }
+        }
+        .animating .banner-bg { animation: bannerExpand 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes textSlam {
+            0%, 21% { transform: scale(3) translateY(-20px); opacity: 0; filter: blur(15px); }
+            24% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0px); }
+            70% { transform: scale(1.03) translateY(0); opacity: 1; filter: blur(0px); }
+            73%, 100% { transform: scale(0.6) translateY(20px); opacity: 0; filter: blur(10px); }
+        }
+        .animating .main-text { animation: textSlam 3.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
+
+        @keyframes flashHit {
+            0%, 23% { opacity: 0; }
+            24% { opacity: 1; }
+            28%, 100% { opacity: 0; }
+        }
+        .animating .hit-flash { animation: flashHit 3.5s linear forwards; }
+
+        @keyframes lightSweep {
+            0%, 30% { left: -100%; opacity: 0; }
+            31% { opacity: 0.5; }
+            50% { left: 200%; opacity: 0.5; }
+            51%, 100% { left: 200%; opacity: 0; }
+        }
+        .animating .text-glare { animation: lightSweep 3.5s linear forwards; }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-content {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: tickerScroll 15s linear infinite;
+        }
+
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .glow-text-white { text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3); }
+        .glow-text-gold { text-shadow: 0 0 15px rgba(250, 204, 21, 0.6), 0 0 30px rgba(234, 179, 8, 0.4); }
+    </style>
+</head>
+<body class="w-full h-screen flex items-center justify-center">
+
+    <div class="portrait-container">
+        <div id="upeti-overlay" class="absolute inset-0 z-50 overflow-hidden pointer-events-none hidden">
+            
+            <!-- Panel Geser Hitam -->
+            <div class="wipe-panel wipe-dark bg-slate-900 border-r-[10px] border-slate-700 shadow-[20px_0_50px_rgba(0,0,0,0.8)] z-10"></div>
+            
+            <!-- Panel Geser Emerald/Hijau Zamrud -->
+            <div class="wipe-panel wipe-emerald bg-gradient-to-r from-emerald-950 via-emerald-800 to-emerald-600 border-r-[15px] border-emerald-400 shadow-[30px_0_50px_rgba(0,0,0,0.9)] z-20">
+                <div class="absolute inset-0 scanlines opacity-50"></div>
+            </div>
+
+            <!-- Lapisan Konten Utama -->
+            <div class="content-layer absolute inset-0 z-30 flex flex-col items-center justify-center opacity-0">
+                
+                <div class="hit-flash absolute inset-0 bg-white opacity-0 z-50 pointer-events-none mix-blend-overlay"></div>
+
+                <!-- Ticker Atas -->
+                <div class="absolute top-[20%] w-full h-8 bg-black/80 border-t border-b border-emerald-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-left">
+                    <div class="ticker-content text-emerald-400 font-bold tracking-[0.2em] text-xs uppercase">
+                        ROYAL TRIBUTE // UPETI MOMENT /// SETORAN KEKAYAAN DITERIMA /// RAKYAT SETIA /// ROYAL TRIBUTE // UPETI MOMENT /// 
+                    </div>
+                </div>
+
+                <!-- BANNER UTAMA (Tengah) -->
+                <div class="relative w-full flex flex-col items-center justify-center z-40 gap-4">
+                    
+                    <!-- Foto Profil Pengguna (Dinamis) -->
+                    <div class="relative w-32 h-32 bg-black border-4 border-yellow-400 rounded-full shadow-2xl overflow-hidden flex items-center justify-center z-40">
+                        <img id="user-avatar" src="https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp" alt="Avatar" class="w-full h-full object-cover">
+                    </div>
+
+                    <!-- Banner Teks -->
+                    <div class="relative w-full flex items-center justify-center">
+                        <div class="banner-bg absolute w-[110%] h-[110px] bg-black border-y-4 border-yellow-400 shadow-[0_0_50px_rgba(0,0,0,0.8)] origin-center skew-x-[-5deg]"></div>
+                        
+                        <div class="main-text relative z-10 flex flex-col items-center">
+                            <div class="relative overflow-hidden px-4 py-1 text-center">
+                                <div class="text-3xl font-black italic tracking-tighter leading-none flex flex-col items-center gap-1">
+                                    <span id="username-text" class="text-white glow-text-white uppercase">@PEMENTOLAN</span>
+                                    <span class="text-yellow-400 glow-text-gold text-2xl">MEMBERIKAN UPETI</span>
+                                </div>
+                                <div class="text-glare absolute top-0 w-24 h-[150%] bg-white/40 transform skew-x-[-30deg] blur-md pointer-events-none"></div>
+                            </div>
+                            <div class="bg-emerald-600 text-white px-4 py-0.5 text-xs font-bold tracking-widest uppercase mt-1 z-20 shadow-lg border border-emerald-500 rounded">
+                                Royal Tribute 💰
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticker Bawah -->
+                <div class="absolute bottom-[20%] w-full h-8 bg-black/80 border-t border-b border-emerald-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-right">
+                    <div class="ticker-content text-white/70 font-bold tracking-[0.2em] text-xs uppercase" style="animation-direction: reverse;">
+                        LONG LIVE THE SULTAN /// KEMAKMURAN KERAJAAN /// LONG LIVE THE SULTAN /// KEMAKMURAN KERAJAAN /// 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        const socket = io({
+            transports: ['polling']
+        });
+
+        const overlay = document.getElementById('upeti-overlay');
+        const userAvatar = document.getElementById('user-avatar');
+        const usernameText = document.getElementById('username-text');
+        let isAnimating = false;
+
+        socket.on('trigger_upeti', (data) => {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            // Jika data pengirim disertakan dari backend, perbarui teks dan foto profilnya
+            if (data) {
+                if (data.uniqueId || data.nickname) {
+                    usernameText.innerText = `@${data.uniqueId || data.nickname}`;
+                }
+                if (data.profilePictureUrl) {
+                    userAvatar.src = data.profilePictureUrl;
+                }
+            }
+
+            overlay.classList.remove('hidden');
+            overlay.classList.remove('animating');
+            void overlay.offsetWidth; 
+            overlay.classList.add('animating');
+
+            setTimeout(() => {
+                overlay.classList.remove('animating');
+                overlay.classList.add('hidden');
+                isAnimating = false;
+            }, 3600); 
+        });
+    </script>
+</body>
+</html>

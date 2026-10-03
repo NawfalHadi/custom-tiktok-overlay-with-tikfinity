@@ -14,11 +14,27 @@
         <button onclick="triggerBreak()" class="w-full py-4 bg-red-600 hover:bg-red-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm">
             Trigger Transition 🚀
         </button>
+        <button onclick="triggerUpeti()" class="w-full py-4 mt-2 bg-green-600 hover:bg-green-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm">
+            Trigger Upeti 
+        </button>
     </div>
 
     <script>
         function triggerBreak() {
             fetch('/breaktriger', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Transition triggered successfully!");
+                }
+            })
+            .catch(error => console.error("Error triggering transition:", error));
+        }
+
+        function triggerUpeti() {
+            fetch('/upetitriger', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             })
