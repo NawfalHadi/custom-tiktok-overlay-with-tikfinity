@@ -6,45 +6,150 @@
     <title>Stream Control Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-zinc-900 text-white flex items-center justify-center h-screen m-0">
-    <div class="text-center p-8 bg-zinc-800 rounded-2xl shadow-xl border border-zinc-700 w-80">
-        <h1 class="text-xl font-bold mb-6 tracking-wide">Stream Controller</h1>
+<body class="bg-zinc-900 text-white min-h-screen p-6">
+    <div class="max-w-4xl mx-auto space-y-6">
         
-        <!-- Tombol Trigger Transisi -->
-        <button onclick="triggerBreak()" class="w-full py-4 bg-red-600 hover:bg-red-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm">
-            Trigger Transition 🚀
-        </button>
-        <button onclick="triggerUpeti()" class="w-full py-4 mt-2 bg-green-600 hover:bg-green-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm">
-            Trigger Upeti 
-        </button>
+        <!-- Stream Action Triggers -->
+        <div class="p-6 bg-zinc-800 rounded-2xl shadow-xl border border-zinc-700 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wide">Stream Controller</h1>
+            <div class="flex gap-3 w-full md:w-auto">
+                <button onclick="triggerBreak()" class="flex-1 md:flex-none px-6 py-3 bg-red-600 hover:bg-red-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider">
+                    Trigger Transition 🚀
+                </button>
+                <button onclick="triggerUpeti()" class="flex-1 md:flex-none px-6 py-3 bg-green-600 hover:bg-green-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider">
+                    Trigger Upeti
+                </button>
+            </div>
+        </div>
+
+        <!-- Members Management Section -->
+        <div class="p-6 bg-zinc-800 rounded-2xl shadow-xl border border-zinc-700 space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 class="text-lg font-bold text-zinc-200">Members List</h2>
+                
+                <!-- Search & Filters -->
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <input type="text" id="searchInput" oninput="fetchMembers()" placeholder="Search username..." 
+                           class="bg-zinc-900 text-sm px-4 py-2 rounded-xl border border-zinc-700 focus:outline-none focus:border-indigo-500 text-white w-full md:w-48">
+                    
+                    <select id="announcedFilter" onchange="fetchMembers()" class="bg-zinc-900 text-sm px-3 py-2 rounded-xl border border-zinc-700 text-zinc-300 focus:outline-none">
+                        <option value="">All Status</option>
+                        <option value="0">Unannounced</option>
+                        <option value="1">Announced</option>
+                    </select>
+
+                    <button onclick="toggleSort()" id="sortBtn" class="bg-zinc-700 hover:bg-zinc-600 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-200">
+                        Sort: Newest First
+                    </button>
+                </div>
+            </div>
+
+            <!-- Members Table Structure -->
+            <div class="overflow-x-auto rounded-xl border border-zinc-700">
+                <table class="w-full text-left text-sm text-zinc-300">
+                    <thead class="bg-zinc-900/80 text-zinc-400 uppercase text-xs">
+                        <tr>
+                            <th class="py-3 px-4">Username</th>
+                            <th class="py-3 px-4">Created At</th>
+                            <th class="py-3 px-4 text-center">Status</th>
+                            <th class="py-3 px-4 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersTable" class="divide-y divide-zinc-700/50">
+                        <!-- Dynamic rows will inject here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        function triggerBreak() {
-            fetch('/breaktriger', { 
+        let currentSort = 'desc';
+
+        function toggleSort() {
+            currentSort = currentSort === 'desc' ? 'asc' : 'desc';
+            document.getElementById('sortBtn').innerText = currentSort === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
+            fetchMembers();
+        }
+
+        function fetchMembers() {
+            console.log('Fetching members...');
+            const search = document.getElementById('searchInput').value;
+            const announced = document.getElementById('announcedFilter').value;
+            
+            const params = new URLSearchParams({
+                search: search,
+                sort: currentSort,
+                announced: announced
+            });
+
+            fetch(`/api/members?${params}`)
+                .then(res => res.json())
+                .then(data => renderMembers(data))
+                .catch(err => console.error("Error fetching members:", err));
+        }
+
+        function renderMembers(members) {
+            const tbody = document.getElementById('membersTable');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (!Array.isArray(members) || members.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-zinc-500">No members found</td></tr>`;
+                return;
+            }
+
+            members.forEach(m => {
+                const isAnnounced = m.is_announced === 1;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-800/50 border-b border-zinc-700/50";
+
+                const statusBadge = isAnnounced 
+                    ? `<span class="px-2 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-md text-xs">Announced</span>`
+                    : `<span class="px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-xs">Pending</span>`;
+
+                const actionButton = isAnnounced
+                    ? `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all">Re-announce 🔄</button>`
+                    : `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold rounded-lg text-white transition-all shadow-md">Announce 📢</button>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-semibold text-white">@${m.username}</td>
+                    <td class="py-3 px-4 text-xs text-zinc-400">${m.created_at}</td>
+                    <td class="py-3 px-4 text-center">${statusBadge}</td>
+                    <td class="py-3 px-4 text-right">${actionButton}</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function announceMember(memberId, status) {
+            fetch(`/api/members/${memberId}/announce`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_announced: status })
             })
-            .then(response => {
-                if (response.ok) {
-                    console.log("Transition triggered successfully!");
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    fetchMembers();
                 }
             })
-            .catch(error => console.error("Error triggering transition:", error));
+            .catch(err => console.error("Error announcing member:", err));
+        }
+
+        function triggerBreak() {
+            fetch('/breaktriger', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .catch(error => console.error("Error triggering transition:", error));
         }
 
         function triggerUpeti() {
-            fetch('/upetitriger', { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log("Transition triggered successfully!");
-                }
-            })
-            .catch(error => console.error("Error triggering transition:", error));
+            fetch('/upetitriger', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .catch(error => console.error("Error triggering transition:", error));
         }
+
+        document.addEventListener('DOMContentLoaded', fetchMembers);
     </script>
 </body>
 </html>

@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / 'datas' / 'viewers.db'
 DB_INIT_PATH = BASE_DIR / 'datas' / 'init.py'
 
