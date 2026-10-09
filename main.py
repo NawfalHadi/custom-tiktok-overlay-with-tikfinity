@@ -1,6 +1,9 @@
 import threading
 from flask import Flask, request, jsonify,render_template
 from flask_socketio import SocketIO
+
+# Background Function
+from background.message_process import run_message_process
 from listener import run_tikfinity_listener
 
 
@@ -41,5 +44,9 @@ def break_trigger():
 if __name__ == '__main__':
     listener_thread = threading.Thread(target=run_tikfinity_listener, args=(socketio,), daemon=True)
     listener_thread.start()
+
+    # Background thread for processing !join messages and database insertion
+    message_thread = threading.Thread(target=run_message_process, daemon=True)
+    message_thread.start()
 
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
