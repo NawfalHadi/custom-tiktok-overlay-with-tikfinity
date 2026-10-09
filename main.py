@@ -69,7 +69,7 @@ def get_members():
     members = [dict(row) for row in rows]
     return jsonify(members)
 
-app.route('/api/members/<int:member_id>/announce', methods=['POST'])
+@app.route('/api/members/<int:member_id>/announce', methods=['POST'])
 def toggle_announce(member_id):
     data = request.get_json() or {}
     # Force set to 1 or toggle if not specified

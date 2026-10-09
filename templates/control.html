@@ -110,8 +110,8 @@
                     : `<span class="px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-xs">Pending</span>`;
 
                 const actionButton = isAnnounced
-                    ? `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all">Re-announce 🔄</button>`
-                    : `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold rounded-lg text-white transition-all shadow-md">Announce 📢</button>`;
+                    ? `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all">Re-announce</button>`
+                    : `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold rounded-lg text-white transition-all shadow-md">Announce</button>`;
 
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-semibold text-white">@${m.username}</td>
@@ -125,6 +125,7 @@
         }
 
         function announceMember(memberId, status) {
+            console.log("Announce the member!")
             fetch(`/api/members/${memberId}/announce`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
