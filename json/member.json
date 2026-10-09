@@ -1,0 +1,83 @@
+{
+  "event": "gift",
+  "data": {
+    "giftId": 7934,
+    "repeatCount": 1,
+    "userIdentity": {
+      "isGiftGiverOfAnchor": true,
+      "isMutualFollowingWithAnchor": true,
+      "isFollowerOfAnchor": true
+    },
+    "userId": "7498777180740060176",
+    "secUid": "MS4wLjABAAAAW5SwWSpbjyH-8Fy0v5n50OzXum1YyXNj-YeB4mIE2I9C4PXAj5uzfPaDpc6oKYqp",
+    "uniqueId": "pementolan",
+    "nickname": "Komunitas Pementolan Duniawi",
+    "profilePictureUrl": "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=7cf9cdfc&x-expires=1791219600&x-signature=0Pf4dweOnm2SkkNLE%2FCKWcXc2RM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+    "followRole": 0,
+    "userBadges": [
+      {
+        "type": "privilege",
+        "privilegeId": "7138381176787490596",
+        "level": 4,
+        "badgeSceneType": 8
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7196929090442513157",
+        "level": 3,
+        "badgeSceneType": 10
+      }
+    ],
+    "userSceneTypes": [
+      8,
+      10
+    ],
+    "userDetails": {
+      "createTime": "0",
+      "bioDescription": "",
+      "profilePictureUrls": [
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=7cf9cdfc&x-expires=1791219600&x-signature=0Pf4dweOnm2SkkNLE%2FCKWcXc2RM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=a2778f77&x-expires=1791219600&x-signature=vYe0hzl4Ef0CXe%2BCs4hcxtIa6vY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=f19fff9a&x-expires=1791219600&x-signature=leBmIDaRcV6WB2Jtuttgd9K2l4Q%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=f4d889de&x-expires=1791219600&x-signature=suZFmhJkSFBZQBnSIEk1g2QLEtw%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=e77c6e59&x-expires=1791219600&x-signature=EETBIGOllswMKORB4gWYiTK96WY%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.jpeg?dr=18067&refresh_token=8eb0e9f5&x-expires=1791219600&x-signature=mMblc9E8%2F1up5ez7QirZHhCj9HQ%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2"
+      ]
+    },
+    "followInfo": {
+      "followingCount": 20,
+      "followerCount": 84,
+      "followStatus": 0,
+      "pushStatus": 0
+    },
+    "isModerator": false,
+    "isNewGifter": false,
+    "isSubscriber": false,
+    "topGifterRank": 0,
+    "gifterLevel": 4,
+    "teamMemberLevel": 3,
+    "msgId": "7692499785610791701",
+    "createTime": "1791049677665",
+    "displayType": "webcast_aweme_gift_send_messageNew",
+    "label": "{0:user} sent {1:gift} × {2:string}",
+    "repeatEnd": false,
+    "gift": {
+      "gift_id": 7934,
+      "repeat_count": 1,
+      "repeat_end": 0,
+      "gift_type": 4
+    },
+    "describe": "sent Heart Me",
+    "giftType": 4,
+    "diamondCount": 1,
+    "giftName": "Heart Me",
+    "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/alisg/webcast-sg/resource/composed.b326356a360b67b367c5cae58fe337b1.png~tplv-resize:258:258.webp",
+    "timestamp": 1791049677666,
+    "receiverUserId": "6796528811741873153",
+    "groupId": "0",
+    "originalName": "Heart Me",
+    "originalDescribe": "Sent Heart Me",
+    "tikfinityUserId": 2001842,
+    "tikfinityUsername": "buergerteriyaki"
+  }
+}
