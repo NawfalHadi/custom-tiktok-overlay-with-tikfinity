@@ -1,0 +1,64 @@
+{
+  "event": "follow",
+  "data": {
+    "followerCount": 989,
+    "userId": "6579166160360128513",
+    "secUid": "MS4wLjABAAAAgapF8aSiK4IoqQ5azrK7a4TrOAMyVr0IkOthGGlKQPctIi81-JVSGXZ3DAMYjl5R",
+    "uniqueId": "naufaleon.id",
+    "nickname": "Naufaleon",
+    "profilePictureUrl": "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/49f99b3d0a56cdd726829fcc96f5ee8d~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=700ce516&x-expires=1791720000&x-signature=KndJLYgZ%2FBYMNd%2F5nD2PW1p%2Fw0E%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+    "followRole": 0,
+    "userBadges": [
+      {
+        "type": "image",
+        "badgeSceneType": 6,
+        "displayType": 1,
+        "url": "https://p19-webcast.tiktokcdn.com/webcast-sg/new_top_gifter_version_2.png~tplv-obj.image"
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7138381176787588900",
+        "level": 10,
+        "badgeSceneType": 8
+      }
+    ],
+    "userSceneTypes": [
+      6,
+      8,
+      6
+    ],
+    "userDetails": {
+      "createTime": "0",
+      "bioDescription": "",
+      "profilePictureUrls": [
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/49f99b3d0a56cdd726829fcc96f5ee8d~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=700ce516&x-expires=1791720000&x-signature=KndJLYgZ%2FBYMNd%2F5nD2PW1p%2Fw0E%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+        "https://p19-common-sign.tiktokcdn.com/tos-alisg-avt-0068/49f99b3d0a56cdd726829fcc96f5ee8d~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=ee812349&x-expires=1791720000&x-signature=t1a6ldHlNpDa%2B3Q6fMg4lKVzF4o%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/49f99b3d0a56cdd726829fcc96f5ee8d~tplv-tiktok-shrink:72:72.jpeg?dr=14561&refresh_token=dacbb455&x-expires=1791720000&x-signature=dwpQ90zfjP%2FjLtCrz%2BeQm4XbI7Q%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my3",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/49f99b3d0a56cdd726829fcc96f5ee8d~tplv-tiktok-shrink:72:72.webp?dr=18049&refresh_token=e3a97fdb&x-expires=1791720000&x-signature=6kSNC%2BoVQNT3f%2BGbXnCYOQYQkUQ%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3",
+        "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/49f99b3d0a56cdd726829fcc96f5ee8d~tplv-tiktok-shrink:72:72.webp?dr=18049&refresh_token=fd55e5e2&x-expires=1791720000&x-signature=oAXiFOo7q8KKgcDde4rfm%2F7tBt0%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/49f99b3d0a56cdd726829fcc96f5ee8d~tplv-tiktok-shrink:72:72.jpeg?dr=18049&refresh_token=bc5a6bbf&x-expires=1791720000&x-signature=q2UUxomQmn6r8gUDvnmVdyJ0zPI%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my3"
+      ]
+    },
+    "followInfo": {
+      "followingCount": 67,
+      "followerCount": 138,
+      "followStatus": 0,
+      "pushStatus": 0
+    },
+    "isModerator": false,
+    "isNewGifter": false,
+    "isSubscriber": false,
+    "topGifterRank": 2,
+    "gifterLevel": 10,
+    "teamMemberLevel": 0,
+    "msgId": "7694636877238094599",
+    "createTime": "1791547257604",
+    "displayType": "pm_main_follow_message_viewer_2",
+    "label": "{0:user} followed the LIVE creator",
+    "profile": "naufaleon.id",
+    "name": "naufaleon.id",
+    "username": "naufaleon.id",
+    "tikfinityUserId": 2001842,
+    "tikfinityUsername": "buergerteriyaki"
+  }
+}
