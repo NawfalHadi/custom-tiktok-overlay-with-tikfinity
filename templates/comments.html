@@ -2,24 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Comment Overlay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Info - Joins</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="comment-box"></div>
+<body class="bg-transparent text-white font-sans p-6 overflow-hidden">
+
+    <div id="join-container" class="flex flex-col gap-3 max-w-sm">
+        <!-- Dynamic join notifications will appear here -->
+    </div>
 
     <script>
         const ws = new WebSocket("ws://localhost:21213/");
+        const joinContainer = document.getElementById('join-container');
 
         ws.onmessage = function (event) {
-            const res = JSON.parse(event.data);
-            if (res.event === "chat" || res.event === "comment") {
-                const d = res.data;
-                const user = d.nickname || d.uniqueId || "User";
-                const msg = d.comment || "";
+            try {
+                const res = JSON.parse(event.data);
                 
-                document.getElementById('comment-box').innerHTML += `<p><b>${user}</b>: ${msg}</p>`;
+                // Check if the event is a member join event
+                if (res.event === "member") {
+                    const d = res.data;
+                    const nickname = d.nickname || d.uniqueId || "A viewer";
+                    const profilePic = d.profilePictureUrl || "https://via.placeholder.com/150";
+
+                    showJoinAlert(nickname, profilePic);
+                }
+            } catch (e) {
+                console.error("Error parsing websocket message:", e);
             }
         };
+
+        function showJoinAlert(name, avatar) {
+            const card = document.createElement('div');
+            card.className = "flex items-center gap-3 bg-black/80 border border-purple-500/50 backdrop-blur-md px-4 py-3 rounded-xl shadow-lg transform translate-y-4 opacity-0 transition-all duration-300";
+            
+            card.innerHTML = `
+                <img src="${avatar}" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-purple-400 object-cover">
+                <div class="flex flex-col">
+                    <span class="text-xs text-purple-400 font-bold uppercase tracking-wider">New Viewer</span>
+                    <span class="text-sm font-semibold truncate max-w-[200px]">${name} joined!</span>
+                </div>
+            `;
+
+            joinContainer.appendChild(card);
+
+            // Animate in
+            setTimeout(() => {
+                card.classList.remove('translate-y-4', 'opacity-0');
+            }, 50);
+
+            // Remove after 4 seconds
+            setTimeout(() => {
+                card.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => card.remove(), 300);
+            }, 4000);
+        }
     </script>
 </body>
 </html>

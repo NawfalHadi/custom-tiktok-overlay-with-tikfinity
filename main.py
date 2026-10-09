@@ -8,7 +8,7 @@ from listener import run_tikfinity_listener
 
 
 app = Flask(__name__, template_folder='.')
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 @app.route('/control')
 def control_panel():
@@ -18,6 +18,10 @@ def control_panel():
 @app.route('/comments-overlay')
 def comments_overlay():
     return render_template('templates/comments.html')
+
+@app.route('/info')
+def info_page():
+    return render_template('templates/info.html')
 
 @app.route('/transition')
 def transition_overlay():

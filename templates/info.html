@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Info - Paper Throw Joins</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Oswald:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Oswald', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .font-handwritten {
+            font-family: 'Caveat', cursive;
+        }
+
+        /* Paper collage torn border effect */
+        .paper-collage {
+            background-color: #fefce8; /* Paper cream color */
+            background-image: radial-gradient(#e5e7eb 1px, transparent 0);
+            background-size: 8px 8px;
+            clip-path: polygon(
+                0% 2%, 15% 0%, 35% 3%, 55% 1%, 75% 4%, 100% 0%, 
+                98% 30%, 100% 65%, 97% 98%, 
+                80% 96%, 60% 100%, 40% 97%, 20% 99%, 0% 95%, 
+                2% 60%, 0% 30%
+            );
+        }
+
+        /* Throw in from off-screen + Throw out animation */
+        @keyframes paperThrow {
+            0% {
+                transform: translate(var(--throw-x), var(--throw-y)) rotate(var(--throw-angle-start)) scale(1.8);
+                opacity: 0;
+            }
+            25% {
+                transform: translate(0, 0) rotate(var(--throw-angle-end)) scale(1);
+                opacity: 1;
+            }
+            30% {
+                transform: translate(0, -6px) rotate(calc(var(--throw-angle-end) + 2deg));
+            }
+            35% {
+                transform: translate(0, 0) rotate(var(--throw-angle-end));
+            }
+            80% {
+                transform: translate(0, 0) rotate(var(--throw-angle-end));
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(var(--throw-x) * -0.8), calc(var(--throw-y) * -0.8)) rotate(calc(var(--throw-angle-start) * -1)) scale(0.6);
+                opacity: 0;
+            }
+        }
+
+        .paper-card {
+            animation: paperThrow 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+    </style>
+</head>
+<body class="w-full h-screen relative overflow-hidden pointer-events-none">
+
+    <div id="paper-viewport" class="absolute inset-0"></div>
+
+    <script>
+        const socket = io({ transports: ['polling'] });
+        const viewport = document.getElementById('paper-viewport');
+
+        socket.on('tiktok_event', (res) => {
+            if (res && res.event === "member") {
+                const d = res.data || {};
+                const nickname = d.nickname || d.uniqueId || "A VIEWER";
+                const profilePic = d.profilePictureUrl || 
+                                   (d.userDetails && d.userDetails.profilePictureUrls && d.userDetails.profilePictureUrls[0]) || 
+                                   "https://via.placeholder.com/150";
+
+                spawnPaperThrow(nickname, profilePic);
+            }
+        });
+
+        function spawnPaperThrow(name, avatar) {
+            const card = document.createElement('div');
+            card.className = "paper-card absolute flex items-center gap-3 paper-collage p-3 pr-6 text-slate-900 shadow-[10px_15px_25px_rgba(0,0,0,0.4)]";
+
+            // Random landing position inside frame
+            const randomTop = Math.floor(Math.random() * 60) + 20; // 20% to 80%
+            const randomLeft = Math.floor(Math.random() * 50) + 15; // 15% to 65%
+
+            // Throw angles & trajectories
+            const throwAngleStart = (Math.random() * 60 - 30) + "deg"; // -30deg to 30deg rotation
+            const throwAngleEnd = (Math.random() * 16 - 8) + "deg";   // Slight natural tilt when lands
+            
+            // Random throw direction (off-screen offset)
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const throwX = (side * (Math.floor(Math.random() * 300) + 400)) + "px";
+            const throwY = (Math.floor(Math.random() * 400) - 200) + "px";
+
+            // Set CSS variables for dynamically calculated keyframe trajectory
+            card.style.top = `${randomTop}%`;
+            card.style.left = `${randomLeft}%`;
+            card.style.setProperty('--throw-x', throwX);
+            card.style.setProperty('--throw-y', throwY);
+            card.style.setProperty('--throw-angle-start', throwAngleStart);
+            card.style.setProperty('--throw-angle-end', throwAngleEnd);
+
+            card.innerHTML = `
+                <!-- Tape effect on top left -->
+                <div class="absolute -top-3 left-4 w-10 h-4 bg-yellow-100/70 border border-yellow-300/40 rotate-[-12deg] shadow-sm pointer-events-none"></div>
+
+                <!-- Profile photo cut-out (square pinned look) -->
+                <div class="relative w-12 h-12 bg-white p-1 border border-slate-300 shadow-md rotate-[-4deg] shrink-0">
+                    <img src="${avatar}" alt="Avatar" class="w-full h-full object-cover grayscale contrast-125">
+                </div>
+
+                <div class="flex flex-col leading-tight">
+                    <span class="font-handwritten text-lg font-bold text-red-600 -mb-1">Ngikut</span>
+                    <span class="text-lg font-black uppercase text-slate-900 tracking-tight max-w-[200px] truncate">${name}</span>
+                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest border-t border-dashed border-slate-400 pt-0.5 mt-0.5">NEW VIEWER IN FRAME</span>
+                </div>
+            `;
+
+            viewport.appendChild(card);
+
+            setTimeout(() => {
+                card.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
