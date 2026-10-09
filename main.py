@@ -1,5 +1,6 @@
 import threading
-from flask import Flask, request, jsonify,render_template
+import logging
+from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO
 
 # Background Function
@@ -7,9 +8,26 @@ from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process
 from listener import run_tikfinity_listener
 
+# 1. Import the initialization function
+from datas.init import initialize_database
+# 2. Run database initialization BEFORE anything else starts
+initialize_database()
 
 app = Flask(__name__, template_folder='.')
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', transports=['websocket', 'polling'])
+
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+logging.getLogger('engineio').setLevel(logging.ERROR)
+logging.getLogger('socketio').setLevel(logging.ERROR)
+
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='threading',
+    transports=['websocket', 'polling'],
+    logger=False,
+    engineio_logger=False
+)
 
 @app.route('/control')
 def control_panel():
@@ -50,11 +68,10 @@ if __name__ == '__main__':
     listener_thread = threading.Thread(target=run_tikfinity_listener, args=(socketio,), daemon=True)
     listener_thread.start()
 
-    # Background thread for processing !join messages and database insertion
     message_thread = threading.Thread(target=run_message_process, daemon=True)
     message_thread.start()
 
     gift_thread = threading.Thread(target=run_gift_inspector, daemon=True)
     gift_thread.start()
 
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
