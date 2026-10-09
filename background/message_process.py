@@ -1,6 +1,4 @@
-import asyncio
-import websockets
-import json
+import socketio
 import sqlite3
 from pathlib import Path
 import subprocess
@@ -10,55 +8,58 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / 'datas' / 'viewers.db'
 DB_INIT_PATH = BASE_DIR / 'datas' / 'init.py'
 
+# Inisialisasi Socket.IO Client
+sio = socketio.Client()
+
 def init_db():
     if not DB_PATH.exists():
         subprocess.run([sys.executable, str(DB_INIT_PATH)], check=True)
 
-async def process_messages():
-    init_db()
-    uri = "ws://localhost:21213/"
-    
-    while True:
-        try:
-            async with websockets.connect(uri) as websocket:
-                print("Connected to TikFinity! Listening for comments...")
-                async for message in websocket:
-                    try:
-                        res = json.loads(message)
-                        if res.get("event") == "chat" or res.get("event") == "comment":
-                            d = res.get("data", {})
-                            user = d.get("uniqueId") or "User"
-                            msg = d.get("comment", "")
-                            
-                            print(f"{user}: {msg}")
-                            
-                            # Filter for '!join' in the message
-                            if "!join" in msg.lower():
-                                conn = sqlite3.connect(DB_PATH)
-                                cursor = conn.cursor()
-                                
-                                # Check if username already exists
-                                cursor.execute('SELECT id FROM tb_viewers WHERE username = ?', (user,))
-                                existing = cursor.fetchone()
-                                
-                                if existing:
-                                    print(f"-> [!] Username '{user}' already exists in database. Ignored.")
-                                else:
-                                    # Insert username into database (ignoring email)
-                                    cursor.execute('INSERT INTO tb_viewers (username) VALUES (?)', (user,))
-                                    conn.commit()
-                                    print(f"-> [SUCCESS] Saved new viewer to datas/viewer.db: '{user}'")
-                                    
-                                conn.close()
-                                
-                    except Exception as e:
-                        print(f"Error parsing message: {e}")
-        except Exception as e:
-            print(f"Connection error: {e}. Reconnecting in 5 seconds...")
-            await asyncio.sleep(5)
+# Mendengarkan event 'tiktok_event' yang dikirim oleh server Flask-SocketIO
+@sio.on('tiktok_event')
+def on_tiktok_event(res):
+    if res and res.get("event") == "chat":
+        d = res.get("data") or {}
+        
+        user = d.get("uniqueId") or d.get("nickname") or "User"
+        msg = d.get("comment", "")
+        
+
+        print(f"-> [SOCKET.IO CHAT] {user}: {msg}")
+        
+        # Filter command !join
+        if "!join" in msg.lower():
+            init_db()
+            conn = sqlite3.connect(DB_PATH, timeout=10.0)
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT id FROM tb_viewers WHERE username = ?', (user,))
+            existing = cursor.fetchone()
+            
+            if existing:
+                print(f"-> [!] Username '{user}' already exists in database. Ignored.")
+            else:
+                cursor.execute('INSERT INTO tb_viewers (username) VALUES (?)', (user,))
+                conn.commit()
+                print(f"-> [SUCCESS] Saved new viewer from Socket.IO event: '{user}'")
+                
+            conn.close()
+
+@sio.event
+def connect():
+    print("-> [MESSAGE PROCESS] Connected to Flask-SocketIO Server (http://127.0.0.1:5000)!")
+
+@sio.event
+def disconnect():
+    print("-> [MESSAGE PROCESS] Disconnected from Flask-SocketIO Server.")
 
 def run_message_process():
-    asyncio.run(process_messages())
+    try:
+        # Connect ke server Flask-SocketIO kamu (bukan ke ws TikFinity)
+        sio.connect('http://127.0.0.1:5000')
+        sio.wait()
+    except Exception as e:
+        print(f"-> [SOCKET.IO CLIENT ERROR] Connection failed: {e}")
 
 if __name__ == "__main__":
     run_message_process()
