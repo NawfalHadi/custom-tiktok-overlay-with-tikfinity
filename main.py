@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify,render_template
 from flask_socketio import SocketIO
 
 # Background Function
+from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process
 from listener import run_tikfinity_listener
 
@@ -52,5 +53,8 @@ if __name__ == '__main__':
     # Background thread for processing !join messages and database insertion
     message_thread = threading.Thread(target=run_message_process, daemon=True)
     message_thread.start()
+
+    gift_thread = threading.Thread(target=run_gift_inspector, daemon=True)
+    gift_thread.start()
 
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
