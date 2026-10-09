@@ -1,0 +1,44 @@
+{
+  "event": "member",
+  "data": {
+    "actionId": 1,
+    "userId": "7484474769820632081",
+    "secUid": "MS4wLjABAAAAb40E9Cf51JaAHXGxRE7k09S2_09Fve2xKfMZ3GreYZp2tf70wvOyiIOlggdTQvqY",
+    "uniqueId": "mr..garuda1",
+    "nickname": "MR. 𝖥𝖮𝖱𝖳𝖴𝖭𝖤𝖱",
+    "profilePictureUrl": "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/f86b3cfeab61a22f4cb39d2cc548b02d~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=bd629de1&x-expires=1791709200&x-signature=HCjOdKgMh7hJjfEG6sdZvoYwgq4%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+    "followRole": 1,
+    "userBadges": [],
+    "userSceneTypes": [],
+    "userDetails": {
+      "createTime": "0",
+      "bioDescription": "",
+      "profilePictureUrls": [
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/f86b3cfeab61a22f4cb39d2cc548b02d~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=bd629de1&x-expires=1791709200&x-signature=HCjOdKgMh7hJjfEG6sdZvoYwgq4%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn.com/tos-alisg-avt-0068/f86b3cfeab61a22f4cb39d2cc548b02d~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=3b954656&x-expires=1791709200&x-signature=hhuGu1506NTfK0e4hSL7dnYuiFc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/f86b3cfeab61a22f4cb39d2cc548b02d~tplv-tiktok-shrink:72:72.jpeg?dr=14561&refresh_token=e9d112b2&x-expires=1791709200&x-signature=znnscEoVSkj%2Bx3RYmejvk2R1MbY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/f86b3cfeab61a22f4cb39d2cc548b02d~tplv-tiktok-shrink:72:72.webp?dr=18049&refresh_token=2eedbad7&x-expires=1791709200&x-signature=gcy54IzkqiduLRTEnBGJSQqt2gc%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/f86b3cfeab61a22f4cb39d2cc548b02d~tplv-tiktok-shrink:72:72.webp?dr=18049&refresh_token=c97a4a4a&x-expires=1791709200&x-signature=tuNeYydP53NYk9IlT%2BLIJftO0Mg%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/f86b3cfeab61a22f4cb39d2cc548b02d~tplv-tiktok-shrink:72:72.jpeg?dr=18049&refresh_token=16946314&x-expires=1791709200&x-signature=7uGdwoDpAPt6cgg3hU9g%2FjQCOSs%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2"
+      ]
+    },
+    "followInfo": {
+      "followingCount": 234,
+      "followerCount": 27,
+      "followStatus": 1,
+      "pushStatus": 0
+    },
+    "isModerator": false,
+    "isNewGifter": false,
+    "isSubscriber": false,
+    "topGifterRank": 0,
+    "gifterLevel": 0,
+    "teamMemberLevel": 0,
+    "msgId": "7694597590625946389",
+    "createTime": "1791538110597",
+    "displayType": "live_room_enter_toast",
+    "label": "{0:user} joined",
+    "tikfinityUserId": 2001842,
+    "tikfinityUsername": "buergerteriyaki"
+  }
+}
