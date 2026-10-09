@@ -41,4 +41,5 @@ def break_trigger():
 if __name__ == '__main__':
     listener_thread = threading.Thread(target=run_tikfinity_listener, args=(socketio,), daemon=True)
     listener_thread.start()
+
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)

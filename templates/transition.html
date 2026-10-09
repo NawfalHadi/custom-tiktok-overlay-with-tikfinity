@@ -71,6 +71,15 @@
         }
         .animating .banner-bg { animation: bannerExpand 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
+        @keyframes profilePop {
+            0%, 19% { transform: scale(0) rotate(-45deg); opacity: 0; filter: blur(10px); }
+            23% { transform: scale(1.1) rotate(0deg); opacity: 1; filter: blur(0px); }
+            26% { transform: scale(1) rotate(0deg); opacity: 1; }
+            70% { transform: scale(1) rotate(0deg); opacity: 1; }
+            73%, 100% { transform: scale(0) rotate(45deg); opacity: 0;}
+        }
+        .animating .profile-container { animation: profilePop 3.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
+
         @keyframes textSlam {
             0%, 21% { transform: scale(3) translateY(-20px); opacity: 0; filter: blur(15px); }
             24% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0px); }
@@ -139,30 +148,45 @@
                     <div class="globe-ring-2 absolute w-[35vh] h-[35vh] border-[4px] border-dotted border-red-300 rounded-full"></div>
                 </div>
 
-                <div class="absolute top-[25%] w-full h-8 bg-black/80 border-t border-b border-red-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-left">
+                <div class="absolute top-[22%] w-full h-8 bg-black/80 border-t border-b border-red-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-left">
                     <div class="ticker-content text-red-500 font-bold tracking-[0.2em] text-xs uppercase">
                         BREAKING NEWS /// LIVE UPDATE /// URGENT ALERT /// DEVELOPING STORY /// BREAKING NEWS /// LIVE UPDATE /// URGENT ALERT /// DEVELOPING STORY /// 
                     </div>
                 </div>
 
-                <div class="relative w-full flex items-center justify-center z-40">
-                    <div class="banner-bg absolute w-[110%] h-[120px] bg-black border-y-4 border-yellow-400 shadow-[0_0_50px_rgba(0,0,0,0.8)] origin-center skew-x-[-5deg]"></div>
-                    
-                    <div class="main-text relative z-10 flex flex-col items-center">
-                        <div class="relative overflow-hidden px-4 py-2">
-                            <div class="text-5xl font-black italic tracking-tighter leading-none flex flex-col items-center gap-1">
-                                <span class="text-white glow-text-white">BREAKING</span>
-                                <span class="text-yellow-400 glow-text-yellow">NEWS</span>
-                            </div>
-                            <div class="text-glare absolute top-0 w-24 h-[150%] bg-white/40 transform skew-x-[-30deg] blur-md pointer-events-none"></div>
+                <!-- PROFILE CIRCLE SECTION -->
+                <div class="profile-container relative z-40 mb-6 flex flex-col items-center opacity-0">
+                    <div class="relative w-36 h-36 rounded-full p-1 bg-gradient-to-tr from-red-600 via-yellow-400 to-red-500 shadow-[0_0_30px_rgba(239,68,68,0.6)]">
+                        <!-- Inner dark border ring -->
+                        <div class="w-full h-full rounded-full bg-black p-1 flex items-center justify-center overflow-hidden">
+                            <!-- User Profile Image -->
+                            <img id="user-profile-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" alt="User Profile" class="w-full h-full object-cover rounded-full filter contrast-110">
                         </div>
-                        <div class="bg-red-600 text-white px-4 py-0.5 text-xs font-bold tracking-widest uppercase mt-1 z-20 shadow-lg border border-red-700">
-                            Live Coverage
+                        <!-- Live broadcast status badge over circle -->
+                        <div class="absolute bottom-1 right-1 bg-red-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full border-2 border-black tracking-wider shadow-md animate-pulse">
+                            NEW!
                         </div>
                     </div>
                 </div>
 
-                <div class="absolute bottom-[25%] w-full h-8 bg-black/80 border-t border-b border-red-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-right">
+                <div class="relative w-full flex items-center justify-center z-40">
+                    <div class="banner-bg absolute w-[110%] h-[110px] bg-black border-y-4 border-yellow-400 shadow-[0_0_50px_rgba(0,0,0,0.8)] origin-center skew-x-[-5deg]"></div>
+                    
+                    <div class="main-text relative z-10 flex flex-col items-center">
+                        <div class="relative overflow-hidden px-4 py-1">
+                            <div class="text-4xl font-black italic tracking-tighter leading-none flex flex-col items-center gap-0.5">
+                                <span class="text-white glow-text-white">SANG KAISAR</span>
+                                <span class="text-yellow-400 glow-text-yellow">BARU</span>
+                            </div>
+                            <div class="text-glare absolute top-0 w-24 h-[150%] bg-white/40 transform skew-x-[-30deg] blur-md pointer-events-none"></div>
+                        </div>
+                        <div class="bg-red-600 text-white px-4 py-0.5 text-xs font-bold tracking-widest uppercase mt-1 z-20 shadow-lg border border-red-700">
+                            @username
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-[22%] w-full h-8 bg-black/80 border-t border-b border-red-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-right">
                     <div class="ticker-content text-white/70 font-bold tracking-[0.2em] text-xs uppercase" style="animation-direction: reverse;">
                         STAND BY FOR UPDATES /// SPECIAL REPORT /// STAND BY FOR UPDATES /// SPECIAL REPORT /// STAND BY FOR UPDATES /// SPECIAL REPORT /// 
                     </div>
@@ -174,7 +198,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // Memaksa Socket.IO menggunakan polling agar tidak diblokir Localtunnel
     const socket = io({
         transports: ['polling']
     });
@@ -182,9 +205,15 @@
     const overlay = document.getElementById('transition-overlay');
     let isAnimating = false;
 
-    socket.on('trigger_transition', () => {
+    // Optional: You can update the profile image dynamically if your socket sends data
+    socket.on('trigger_transition', (data) => {
         if (isAnimating) return;
         isAnimating = true;
+
+        // If your backend emits user profile data (e.g. data.avatarUrl), handle it here:
+        if (data && data.avatarUrl) {
+            document.getElementById('user-profile-img').src = data.avatarUrl;
+        }
 
         overlay.classList.remove('hidden');
         overlay.classList.remove('animating');
