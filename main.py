@@ -41,7 +41,7 @@ def get_members():
 
     # Base query joining members with viewers to get the username
     query = '''
-        SELECT m.id, m.id_viewer, v.username, m.is_announced, m.created_at, m.joined_at
+        SELECT m.id, m.id_viewer, v.username, v.profile_picture_url, m.is_announced, m.created_at, m.joined_at
         FROM tb_members m
         JOIN tb_viewers v ON m.id_viewer = v.id
         WHERE 1=1
@@ -116,7 +116,17 @@ def kaisars_page():
 
 @app.route('/breaktriger', methods=['POST'])
 def break_trigger():
-    socketio.emit('trigger_transition')
+    data = request.get_json() or {}
+    username = data.get('username', 'UNKNOWN')
+    
+    # Change 'profilePictureUrl' to 'avatarUrl' to match your JavaScript payload
+    avatar_url = data.get('avatarUrl', 'https://via.placeholder.com/150')
+    
+    # Broadcast the data payload to all connected clients (overlays)
+    socketio.emit('trigger_transition', {
+        'username': username,
+        'avatarUrl': avatar_url
+    })
     return jsonify({"status": "success"}), 200
 
 if __name__ == '__main__':

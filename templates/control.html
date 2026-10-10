@@ -101,6 +101,7 @@
             }
 
             members.forEach(m => {
+                // console.log('Member data:', m);
                 const isAnnounced = m.is_announced === 1;
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-zinc-800/50 border-b border-zinc-700/50";
@@ -110,8 +111,8 @@
                     : `<span class="px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-xs">Pending</span>`;
 
                 const actionButton = isAnnounced
-                    ? `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all">Re-announce</button>`
-                    : `<button onclick="announceMember(${m.id}, 1)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold rounded-lg text-white transition-all shadow-md">Announce</button>`;
+                    ? `<button onclick="announceMember(${m.id}, 1, '${m.username}', '${m.profile_picture_url || ''}')" class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all">Re-announce</button>`
+                    : `<button onclick="announceMember(${m.id}, 1, '${m.username}', '${m.profile_picture_url || ''}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold rounded-lg text-white transition-all shadow-md">Announce</button>`;
 
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-semibold text-white">@${m.username}</td>
@@ -124,8 +125,10 @@
             });
         }
 
-        function announceMember(memberId, status) {
-            console.log("Announce the member!")
+        function announceMember(memberId, status, username = '', profilePictureUrl = '') {
+            console.log("Announcing member:", username);
+            
+            // 1. Update database status
             fetch(`/api/members/${memberId}/announce`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -135,9 +138,28 @@
             .then(res => {
                 if (res.success) {
                     fetchMembers();
+                    
+                    // 2. Trigger the break / transition screen with their username
+                    triggerBreakWithUser(username, profilePictureUrl);
                 }
             })
             .catch(err => console.error("Error announcing member:", err));
+        }
+
+        function triggerBreakWithUser(username, profilePictureUrl = '') {
+            // Default placeholder profile picture or fetch if available
+            const avatarUrl = profilePictureUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80";
+            console.log("Get the username to send to transition and sent", avatarUrl)
+            
+            fetch('/breaktriger', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    username: username,
+                    avatarUrl: avatarUrl
+                })
+            })
+            .catch(error => console.error("Error triggering transition:", error));
         }
 
         function triggerBreak() {

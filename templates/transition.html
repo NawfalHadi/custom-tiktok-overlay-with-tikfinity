@@ -197,35 +197,42 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-<script>
-    const socket = io({
-        transports: ['polling']
-    });
+    <script>
+        const socket = io({
+            transports: ['polling']
+        });
 
-    const overlay = document.getElementById('transition-overlay');
-    let isAnimating = false;
+        const overlay = document.getElementById('transition-overlay');
+        let isAnimating = false;
 
-    // Optional: You can update the profile image dynamically if your socket sends data
-    socket.on('trigger_transition', (data) => {
-        if (isAnimating) return;
-        isAnimating = true;
+        socket.on('trigger_transition', (data) => {
+            if (isAnimating) return;
+            isAnimating = true;
 
-        // If your backend emits user profile data (e.g. data.avatarUrl), handle it here:
-        if (data && data.avatarUrl) {
-            document.getElementById('user-profile-img').src = data.avatarUrl;
-        }
+            // Update profile picture if provided
+            if (data && data.avatarUrl) {
+                document.getElementById('user-profile-img').src = data.avatarUrl;
+            }
 
-        overlay.classList.remove('hidden');
-        overlay.classList.remove('animating');
-        void overlay.offsetWidth; 
-        overlay.classList.add('animating');
+            // Update username dynamically in the banner element
+            if (data && data.username) {
+                const usernameTag = document.querySelector('.main-text .bg-red-600');
+                if (usernameTag) {
+                    usernameTag.innerText = `@${data.username}`;
+                }
+            }
 
-        setTimeout(() => {
+            overlay.classList.remove('hidden');
             overlay.classList.remove('animating');
-            overlay.classList.add('hidden');
-            isAnimating = false;
-        }, 3600); 
-    });
-</script>
+            void overlay.offsetWidth; 
+            overlay.classList.add('animating');
+
+            setTimeout(() => {
+                overlay.classList.remove('animating');
+                overlay.classList.add('hidden');
+                isAnimating = false;
+            }, 3600); 
+        });
+    </script>
 </body>
 </html>
