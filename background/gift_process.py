@@ -87,11 +87,13 @@ async def inspect_gifts():
                             total_coins = diamond_count * repeat_count
 
                             if total_coins > 20:
+                                unique_id = gift_data.get("uniqueId") or gift_data.get("nickname") or "User"
                                 avatar_url = gift_data.get("profilePictureUrl") or ""
                                 gift_name = gift_data.get("giftName", "Special Gift")
                                 gift_icon_url = gift_data.get("giftPictureUrl", "")
                                 
-                                print(f"-> [UPETI DETECTED] @{unique_id} sent {gift_name} x{repeat_count} ({total_coins} coins). Triggering Epic Transition!")
+                                
+                                print(f"-> [UPETI DETECTED] @{unique_id} sent {gift_name} x{repeat_count} ({total_coins} coins). Triggering Epic Transition & Auto-Show!")
                                 
                                 # Trigger Flask backend endpoint
                                 try:

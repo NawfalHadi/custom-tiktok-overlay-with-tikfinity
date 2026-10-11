@@ -125,10 +125,17 @@ def break_trigger():
     })
     return jsonify({"status": "success"}), 200
 
+# ==================== upeti action ==========
+
 @app.route('/api/upeti/toggle', methods=['POST'])
 def toggle_upeti_state():
     data = request.get_json() or {}
-    upeti_state["active"] = data.get("active", not upeti_state["active"])
+    new_active_status = data.get("active", not upeti_state["active"])
+    
+    upeti_state["active"] = new_active_status
+
+    # Fire transition first, then update the persistent overlay visibility
+    socketio.emit('trigger_upeti_transition', upeti_state)
     socketio.emit('update_upeti_state', upeti_state)
     return jsonify({"success": True, "active": upeti_state["active"]})
 
@@ -136,16 +143,22 @@ def toggle_upeti_state():
 def upeti_trigger():
     data = request.get_json() or {}
     
-    # Update latest state data
+    # Update latest state data and force active to True
     upeti_state["username"] = data.get("username", upeti_state["username"])
     upeti_state["avatarUrl"] = data.get("avatarUrl", upeti_state["avatarUrl"])
     upeti_state["giftName"] = data.get("giftName", upeti_state["giftName"])
     upeti_state["giftCount"] = data.get("giftCount", upeti_state["giftCount"])
+    upeti_state["giftIconUrl"] = data.get("giftIconUrl", upeti_state["giftIconUrl"])
     upeti_state["active"] = True
 
-    # Broadcast epic moment transition event
+    # Fire transition first, then show the persistent overlay
     socketio.emit('trigger_upeti_transition', upeti_state)
+    socketio.emit('update_upeti_state', upeti_state)
     return jsonify({"status": "success"}), 200
+
+@app.route('/upeti-transition')
+def upeti_transition_page():
+    return render_template('templates/upeti-transition.html')
 
 if __name__ == '__main__':
 
@@ -153,8 +166,9 @@ if __name__ == '__main__':
         "active": True,
         "username": "pementolan",
         "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
-        "giftName": "Galaxy 🌌",
-        "giftCount": 1
+        "giftName": "Galaxy",
+        "giftCount": 1,
+        "giftIconUrl": "https://img.icons8.com/color/96/gift.png"
     }
 
     listener_thread = threading.Thread(target=run_tikfinity_listener, args=(socketio,), daemon=True)
@@ -166,4 +180,4 @@ if __name__ == '__main__':
     gift_thread = threading.Thread(target=run_gift_inspector, daemon=True)
     gift_thread.start()
 
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
