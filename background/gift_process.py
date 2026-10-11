@@ -86,7 +86,7 @@ async def inspect_gifts():
                             repeat_count = int(gift_data.get("repeatCount", 1))
                             total_coins = diamond_count * repeat_count
 
-                            if total_coins > 20:
+                            if total_coins >= 1:
                                 unique_id = gift_data.get("uniqueId") or gift_data.get("nickname") or "User"
                                 avatar_url = gift_data.get("profilePictureUrl") or ""
                                 gift_name = gift_data.get("giftName", "Special Gift")
