@@ -16,8 +16,8 @@
                 <button onclick="triggerBreak()" class="flex-1 md:flex-none px-6 py-3 bg-red-600 hover:bg-red-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider">
                     Trigger Transition 🚀
                 </button>
-                <button onclick="triggerUpeti()" class="flex-1 md:flex-none px-6 py-3 bg-green-600 hover:bg-green-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider">
-                    Trigger Upeti
+                <button onclick="toggleUpetiState()" id="toggleUpetiBtn" class="flex-1 md:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider">
+                    Upeti Overlay: ACTIVE 🟢
                 </button>
             </div>
         </div>
@@ -66,6 +66,7 @@
 
     <script>
         let currentSort = 'desc';
+        let upetiIsActive = true;
 
         function toggleSort() {
             currentSort = currentSort === 'desc' ? 'asc' : 'desc';
@@ -170,6 +171,21 @@
         function triggerUpeti() {
             fetch('/upetitriger', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
                 .catch(error => console.error("Error triggering transition:", error));
+        }
+
+        function toggleUpetiState() {
+            upetiIsActive = !upetiIsActive;
+            const btn = document.getElementById('toggleUpetiBtn');
+            btn.innerText = upetiIsActive ? "Upeti Overlay: ACTIVE 🟢" : "Upeti Overlay: DEACTIVE 🔴";
+            btn.className = upetiIsActive 
+                ? "flex-1 md:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider"
+                : "flex-1 md:flex-none px-6 py-3 bg-zinc-700 hover:bg-zinc-600 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider";
+
+            fetch('/api/upeti/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ active: upetiIsActive })
+            }).catch(err => console.error("Toggle error:", err));
         }
 
         document.addEventListener('DOMContentLoaded', fetchMembers);

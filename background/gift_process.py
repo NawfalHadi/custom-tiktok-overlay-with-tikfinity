@@ -3,6 +3,7 @@ import websockets
 import json
 import sqlite3
 import os
+import requests
 
 def init_db():
     os.makedirs('datas', exist_ok=True)
@@ -64,7 +65,7 @@ async def inspect_gifts():
     while True:
         try:
             async with websockets.connect(uri) as websocket:
-                print("-> [GIFT INSPECTOR] Connected to TikFinity! Monitoring membership gifts...")
+                print("-> [GIFT INSPECTOR] Connected to TikFinity! Monitoring membership & upeti gifts...")
                 async for message in websocket:
                     try:
                         res = json.loads(message)
@@ -74,11 +75,35 @@ async def inspect_gifts():
                             unique_id = gift_data.get("uniqueId")
                             nickname = gift_data.get("nickname")
 
-                            # Check for target membership giftId (7934)
+                            # 1. Check for target membership giftId (7934)
                             if gift_id == 7934:
                                 print(f"\n================ MEMBERSHIP GIFT DETECTED (GiftId: {gift_id}) ================")
                                 process_member_gift(unique_id, nickname)
                                 print("========================================================================\n")
+
+                            # 2. Check for Upeti Epic Transition (> 20 coins)
+                            diamond_count = int(gift_data.get("diamondCount", 0))
+                            repeat_count = int(gift_data.get("repeatCount", 1))
+                            total_coins = diamond_count * repeat_count
+
+                            if total_coins > 20:
+                                avatar_url = gift_data.get("profilePictureUrl") or ""
+                                gift_name = gift_data.get("giftName", "Special Gift")
+                                gift_icon_url = gift_data.get("giftPictureUrl", "")
+                                
+                                print(f"-> [UPETI DETECTED] @{unique_id} sent {gift_name} x{repeat_count} ({total_coins} coins). Triggering Epic Transition!")
+                                
+                                # Trigger Flask backend endpoint
+                                try:
+                                    requests.post("http://127.0.0.1:5000/upetitriger", json={
+                                        "username": unique_id,
+                                        "avatarUrl": avatar_url,
+                                        "giftName": gift_name,
+                                        "giftCount": repeat_count,
+                                        "giftIconUrl": gift_icon_url
+                                    }, timeout=2.0)
+                                except Exception as req_err:
+                                    print(f"-> [HTTP ERROR] Failed to trigger upeti endpoint: {req_err}")
 
                     except Exception as e:
                         print(f"Error parsing gift payload: {e}")

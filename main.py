@@ -105,10 +105,6 @@ def transition_overlay():
 def upeti_page():
     return render_template('templates/upeti.html')
 
-@app.route('/upetitriger', methods=['POST'])
-def upeti_trigger():
-    socketio.emit('trigger_upeti')
-    return jsonify({"status": "success"}), 200
 
 @app.route('/kaisars')
 def kaisars_page():
@@ -129,7 +125,38 @@ def break_trigger():
     })
     return jsonify({"status": "success"}), 200
 
+@app.route('/api/upeti/toggle', methods=['POST'])
+def toggle_upeti_state():
+    data = request.get_json() or {}
+    upeti_state["active"] = data.get("active", not upeti_state["active"])
+    socketio.emit('update_upeti_state', upeti_state)
+    return jsonify({"success": True, "active": upeti_state["active"]})
+
+@app.route('/upetitriger', methods=['POST'])
+def upeti_trigger():
+    data = request.get_json() or {}
+    
+    # Update latest state data
+    upeti_state["username"] = data.get("username", upeti_state["username"])
+    upeti_state["avatarUrl"] = data.get("avatarUrl", upeti_state["avatarUrl"])
+    upeti_state["giftName"] = data.get("giftName", upeti_state["giftName"])
+    upeti_state["giftCount"] = data.get("giftCount", upeti_state["giftCount"])
+    upeti_state["active"] = True
+
+    # Broadcast epic moment transition event
+    socketio.emit('trigger_upeti_transition', upeti_state)
+    return jsonify({"status": "success"}), 200
+
 if __name__ == '__main__':
+
+    upeti_state = {
+        "active": True,
+        "username": "pementolan",
+        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+        "giftName": "Galaxy 🌌",
+        "giftCount": 1
+    }
+
     listener_thread = threading.Thread(target=run_tikfinity_listener, args=(socketio,), daemon=True)
     listener_thread.start()
 
@@ -139,4 +166,4 @@ if __name__ == '__main__':
     gift_thread = threading.Thread(target=run_gift_inspector, daemon=True)
     gift_thread.start()
 
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
