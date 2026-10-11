@@ -1,0 +1,91 @@
+{
+  "event": "gift",
+  "data": {
+    "giftId": 5655,
+    "repeatCount": 1,
+    "repeatEnd": true,
+    "groupId": "1791686162982",
+    "userIdentity": {
+      "isGiftGiverOfAnchor": true,
+      "isMutualFollowingWithAnchor": true,
+      "isFollowerOfAnchor": true
+    },
+    "userId": "7498777180740060176",
+    "secUid": "MS4wLjABAAAAW5SwWSpbjyH-8Fy0v5n50OzXum1YyXNj-YeB4mIE2I9C4PXAj5uzfPaDpc6oKYqp",
+    "uniqueId": "pementolan",
+    "nickname": "Komunitas Pementolan Duniawi",
+    "profilePictureUrl": "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=4cd3db37&x-expires=1791856800&x-signature=7PzgLEVrCFaTyMesV%2BgX2I7AyxI%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+    "followRole": 0,
+    "userBadges": [
+      {
+        "type": "image",
+        "badgeSceneType": 6,
+        "displayType": 1,
+        "url": "https://p19-webcast.tiktokcdn.com/webcast-sg/new_top_gifter_version_2.png~tplv-obj.image"
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7138381176787490596",
+        "level": 4,
+        "badgeSceneType": 8
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7196929090442513157",
+        "level": 4,
+        "badgeSceneType": 10
+      }
+    ],
+    "userSceneTypes": [
+      6,
+      8,
+      10,
+      6
+    ],
+    "userDetails": {
+      "createTime": "0",
+      "bioDescription": "",
+      "profilePictureUrls": [
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=4cd3db37&x-expires=1791856800&x-signature=7PzgLEVrCFaTyMesV%2BgX2I7AyxI%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=e3d0e35f&x-expires=1791856800&x-signature=XgWqkclS74MYlUMg6MxZuWCtxig%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=3aa2ceda&x-expires=1791856800&x-signature=su00PxtJk5RWt%2FTxpP1%2FhVVyF7w%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=52ac804a&x-expires=1791856800&x-signature=a%2BCdvUAp8xbke4CJb8Ghb02KYaE%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp?dr=18067&refresh_token=5c5e2451&x-expires=1791856800&x-signature=aJwLgKdAu7TkGGJITQsg04aopuc%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.jpeg?dr=18067&refresh_token=2997f3a9&x-expires=1791856800&x-signature=oITMLfdGA3vybVV6bXfCm8Cs4Rk%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2"
+      ]
+    },
+    "followInfo": {
+      "followingCount": 20,
+      "followerCount": 85,
+      "followStatus": 0,
+      "pushStatus": 0
+    },
+    "isModerator": false,
+    "isNewGifter": false,
+    "isSubscriber": false,
+    "topGifterRank": 1,
+    "gifterLevel": 4,
+    "teamMemberLevel": 4,
+    "msgId": "7695233170062117640",
+    "createTime": "1791686166653",
+    "displayType": "webcast_aweme_gift_send_messageNew",
+    "label": "{0:user} sent {1:gift} × {2:string}",
+    "gift": {
+      "gift_id": 5655,
+      "repeat_count": 1,
+      "repeat_end": 1,
+      "gift_type": 1
+    },
+    "describe": "sent Rose",
+    "giftType": 1,
+    "diamondCount": 1,
+    "giftName": "Rose",
+    "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.png",
+    "timestamp": 1791686166653,
+    "receiverUserId": "6796528811741873153",
+    "originalName": "Rose",
+    "originalDescribe": "Sent Rose",
+    "tikfinityUserId": 2001842,
+    "tikfinityUsername": "buergerteriyaki"
+  }
+}
