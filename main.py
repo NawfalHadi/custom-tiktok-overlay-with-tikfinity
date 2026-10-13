@@ -165,6 +165,15 @@ def upeti_transition_page():
 def fake_api_panel():
     return render_template('templates/controls/api-panel.html')
 
+@app.route('/api/fake-trigger', methods=['POST'])
+def fake_trigger():
+    payload = request.get_json() or {}
+    
+    # Broadcast the payload using the same event name your overlays listen to (e.g., 'tiktok_event')
+    socketio.emit('tiktok_event', payload)
+    
+    return jsonify({"status": "success", "event": payload.get("event")}), 200
+
 if __name__ == '__main__':
 
     upeti_state = {
