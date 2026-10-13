@@ -160,6 +160,11 @@ def upeti_trigger():
 def upeti_transition_page():
     return render_template('templates/upeti-transition.html')
 
+# =============== controls route ============
+@app.route('/fake-api-panel')
+def fake_api_panel():
+    return render_template('templates/controls/api-panel.html')
+
 if __name__ == '__main__':
 
     upeti_state = {

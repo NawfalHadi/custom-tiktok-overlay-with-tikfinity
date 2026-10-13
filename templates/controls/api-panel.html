@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake API Trigger Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen p-8">
+    <div class="max-w-3xl mx-auto space-y-6">
+        
+        <div class="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl space-y-2">
+            <h1 class="text-xl font-black tracking-wide text-yellow-400">⚡ FAKE API PAYLOAD TESTER</h1>
+            <p class="text-xs text-zinc-400">Click any box to fire the corresponding simulated JSON payload directly into your backend webhook routes.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Test Gift (Rose - Low Value) -->
+            <button onclick="sendFakeWebhook('/upetitriger', 'giftRose')" 
+                    class="p-5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-left transition-all active:scale-95 group">
+                <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Gift Event</div>
+                <div class="text-base font-bold text-white group-hover:text-yellow-400">Send Rose (Low Coin)</div>
+                <div class="text-xs text-zinc-400 mt-1">@pementolan • 1 Coin</div>
+            </button>
+
+            <!-- Test Gift (High Value - Triggers Bumper) -->
+            <button onclick="sendFakeWebhook('/upetitriger', 'giftHighValue')" 
+                    class="p-5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-left transition-all active:scale-95 group">
+                <div class="text-[10px] font-bold text-yellow-500 uppercase tracking-widest">Gift Event (Threshold > 20)</div>
+                <div class="text-base font-bold text-white group-hover:text-yellow-400">Send High Value Gift</div>
+                <div class="text-xs text-zinc-400 mt-1">@pementolan • 250 Coins (Triggers Bumper)</div>
+            </button>
+
+            <!-- Test Follow -->
+            <button onclick="sendFakeWebhook('/breaktriger', 'follow')" 
+                    class="p-5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-left transition-all active:scale-95 group">
+                <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Follow Event</div>
+                <div class="text-base font-bold text-white group-hover:text-emerald-400">Simulate Follower</div>
+                <div class="text-xs text-zinc-400 mt-1">@naufaleon.id</div>
+            </button>
+
+            <!-- Test Join Room -->
+            <button onclick="sendFakeWebhook('/breaktriger', 'join')" 
+                    class="p-5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-left transition-all active:scale-95 group">
+                <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Member Event</div>
+                <div class="text-base font-bold text-white group-hover:text-indigo-400">Simulate Room Join</div>
+                <div class="text-xs text-zinc-400 mt-1">@mr..garuda1</div>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Import the external JS file -->
+    <script src="{{ url_for('static', filename='fake-api.js') }}"></script>
+</body>
+</html>
