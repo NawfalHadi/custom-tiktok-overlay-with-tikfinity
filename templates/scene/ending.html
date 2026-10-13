@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Ending Credits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Oswald', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #09090b 0%, #000000 100%);
+        }
+
+        /* Cinematic Credit Crawl Animation */
+        @keyframes crawl {
+            0% { transform: translateY(100vh); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-150vh); opacity: 0; }
+        }
+
+        .credits-crawl {
+            animation: crawl 25s linear infinite;
+        }
+
+        /* Glow effects */
+        .glow-gold { text-shadow: 0 0 20px rgba(250, 204, 21, 0.6), 0 0 40px rgba(234, 179, 8, 0.3); }
+        .glow-emerald { text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden text-white">
+
+    <!-- Background Vignette & Scanlines -->
+    <div class="absolute inset-0 bg-radial from-transparent via-black/80 to-black pointer-events-none z-10"></div>
+    <div class="absolute inset-0 scanlines opacity-40 z-20"></div>
+
+    <!-- Main Scrolling Credits Container -->
+    <div class="relative z-30 w-full max-w-xl h-full flex flex-col items-center overflow-hidden text-center">
+        <div id="credits-wrapper" class="credits-crawl absolute flex flex-col items-center space-y-16 py-32 w-full">
+            
+            <!-- HEADER LOGO / TITLE -->
+            <div class="space-y-3">
+                <div class="text-xs font-bold tracking-[0.4em] text-emerald-400 uppercase">SPECIAL APPRECIATION</div>
+                <h1 class="text-6xl font-black italic tracking-tighter text-yellow-400 glow-gold uppercase">CREDITS</h1>
+                <div class="w-24 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto mt-2"></div>
+            </div>
+
+            <!-- COMMUNITY SECTION -->
+            <div class="space-y-2">
+                <h2 class="text-2xl font-bold tracking-widest text-zinc-400 uppercase">COMMUNITY SUPPORTERS</h2>
+                <p class="text-xs text-zinc-500 tracking-wider">Terima kasih kepada seluruh pementol yang telah bergabung</p>
+            </div>
+
+            <!-- DYNAMIC MEMBERS LIST INJECTED HERE -->
+            <div id="members-credit-list" class="flex flex-col items-center space-y-8 w-full px-8">
+                <!-- Injected dynamically via script -->
+            </div>
+
+            <!-- FOOTER SIGN OFF -->
+            <div class="space-y-4 pt-12">
+                <div class="text-3xl font-black italic tracking-wider text-white glow-emerald">TERIMA KASIH TELAH MENONTON!</div>
+                <div class="text-sm font-semibold tracking-widest text-yellow-500/80 uppercase">SAMPAI JUMPA DI LIVE STREAM BERIKUTNYA</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        const socket = io({ transports: ['polling'] });
+
+        function loadEndingMembers() {
+            console.log("Fetching members from /api/members...");
+            fetch('/api/members')
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.json();
+                })
+                .then(members => {
+                    console.log("Members received:", members);
+                    const container = document.getElementById('members-credit-list');
+                    if (!container) return;
+                    container.innerHTML = '';
+
+                    if (!Array.isArray(members) || members.length === 0) {
+                        container.innerHTML = `<div class="text-zinc-600 italic">No members recorded yet</div>`;
+                        return;
+                    }
+
+                    members.forEach(m => {
+                        const item = document.createElement('div');
+                        item.className = "flex flex-col items-center space-y-1 transform hover:scale-105 transition-transform duration-300";
+                        
+                        item.innerHTML = `
+                            <div class="text-xl font-bold tracking-wider text-white drop-shadow-md">@${m.username || m.uniqueId || 'User'}</div>
+                            <div class="text-[10px] tracking-widest text-zinc-500 uppercase">Member</div>
+                            <div class="w-12 h-[1px] bg-zinc-800 mt-2"></div>
+                        `;
+                        container.appendChild(item);
+                    });
+                })
+                .catch(err => console.error("Error loading members for ending credits:", err));
+        }
+
+        document.addEventListener('DOMContentLoaded', loadEndingMembers);
+    </script>
+</body>
+</html>

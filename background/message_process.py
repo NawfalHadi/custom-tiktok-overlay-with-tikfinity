@@ -9,47 +9,53 @@ DB_PATH = BASE_DIR / 'datas' / 'viewers.db'
 # Inisialisasi Socket.IO Client
 sio = socketio.Client()
 
+
+def join_viewer(user, profile_url):
+    """Save a viewer and initialize their stats unless they already exist."""
+    try:
+        print(f"-> [SOCKET.IO COMMAND] Registering viewer '{user}'...")
+        with sqlite3.connect(DB_PATH, timeout=10.0) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM tb_viewers WHERE username = ?', (user,))
+            if cursor.fetchone():
+                print(f"-> [!] Username '{user}' already exists in database. Ignored.")
+                return
+
+            cursor.execute(
+                'INSERT INTO tb_viewers (username, profile_picture_url) VALUES (?, ?)',
+                (user, profile_url),
+            )
+            viewer_id = cursor.lastrowid
+            cursor.execute(
+                'INSERT INTO tb_stats (id_viewer, points) VALUES (?, ?)',
+                (viewer_id, 0),
+            )
+        print(f"-> [SUCCESS] Saved new viewer from Socket.IO event: '{user}'")
+    except Exception as e:
+        print(f"-> [DATABASE ERROR] {e}")
+
+
 # Mendengarkan event 'tiktok_event' yang dikirim oleh server Flask-SocketIO
 @sio.on('tiktok_event')
 def on_tiktok_event(res):
-    if res and res.get("event") == "chat":
-        d = res.get("data") or {}
-        
+    if not res:
+        return
+
+    event = res.get("event")
+    d = res.get("data") or {}
+    profile_url = d.get("profilePictureUrl", "https://via.placeholder.com/150")
+
+    if event == "chat":
         user = d.get("uniqueId") or d.get("nickname") or "User"
         msg = d.get("comment", "")
-        profileUrl = d.get("profilePictureUrl", "https://via.placeholder.com/150")
-        
         print(f"-> [SOCKET.IO CHAT] {user}: {msg}")
-        
-        # Filter command !join
         if "!join" in msg.lower():
-            try:
-                print(f"-> [SOCKET.IO COMMAND] '!join' command detected from user '{user}'. Attempting to save to database...")
-                conn = sqlite3.connect(DB_PATH, timeout=10.0)
-                cursor = conn.cursor()
-                
-                # Check if username already exists
-                cursor.execute('SELECT id FROM tb_viewers WHERE username = ?', (user,))
-                existing = cursor.fetchone()
-                
-                if existing:
-                    print(f"-> [!] Username '{user}' already exists in database. Ignored.")
-                else:
-                    cursor.execute(
-                        'INSERT INTO tb_viewers (username, profile_picture_url) VALUES (?, ?)',
-                        (user, profileUrl),
-                    )
-                    viewer_id = cursor.lastrowid
-                    cursor.execute(
-                        'INSERT INTO tb_stats (id_viewer, points) VALUES (?, ?)',
-                        (viewer_id, 0),
-                    )
-                    conn.commit()
-                    print(f"-> [SUCCESS] Saved new viewer from Socket.IO event: '{user}'")
-                    
-                conn.close()
-            except Exception as e:
-                print(f"-> [DATABASE ERROR] {e}")
+            join_viewer(user, profile_url)
+    elif event == "follow":
+        follower = d.get("uniqueId")
+        if follower:
+            print(f"-> [SOCKET.IO FOLLOW] '{follower}' followed.")
+            join_viewer(follower, profile_url)
 
 @sio.event
 def connect():

@@ -174,6 +174,11 @@ def fake_trigger():
     
     return jsonify({"status": "success", "event": payload.get("event")}), 200
 
+# =============== Secenes route ============
+@app.route('/ending')
+def ending_page():
+    return render_template('templates/scene/ending.html')
+
 if __name__ == '__main__':
 
     upeti_state = {
