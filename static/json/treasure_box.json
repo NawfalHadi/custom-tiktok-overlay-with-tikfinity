@@ -1,0 +1,265 @@
+{
+  "event": "envelope",
+  "data": {
+    "common": {
+      "method": "WebcastEnvelopeMessage",
+      "msgId": "7696007584019499828",
+      "roomId": "7696074058131049223",
+      "createTime": "1791884283239",
+      "monitor": 0,
+      "isShowMsg": true,
+      "describe": "",
+      "displayText": {
+        "key": "pm_mt_treasure_box_sender_comment",
+        "defaultPattern": "{0:user} sent a Treasure Box with {1:image} x {2:string}",
+        "defaultFormat": {
+          "color": "#ffffffff",
+          "bold": false,
+          "italic": false,
+          "weight": 400,
+          "italicAngle": 0,
+          "fontSize": 0,
+          "useHeighLightColor": false,
+          "useRemoteClor": false
+        },
+        "pieces": [
+          {
+            "type": 11,
+            "format": {
+              "color": "#ffffff80",
+              "bold": false,
+              "italic": false,
+              "weight": 400,
+              "italicAngle": 0,
+              "fontSize": 0,
+              "useHeighLightColor": false,
+              "useRemoteClor": false
+            },
+            "stringValue": "",
+            "userValue": {
+              "user": {
+                "id": "7213706120656405509",
+                "deprecated1": "0",
+                "nickname": "LeleLepas",
+                "deprecated2": 0,
+                "bioDescription": "",
+                "deprecated3": 0,
+                "deprecated4": "0",
+                "deprecated5": "",
+                "avatarThumb": {
+                  "urlList": [
+                    "https://p16-webcast.tiktokcdn.com/img/alisg/webcast-sg/envelope_comment_avatar.png~tplv-obj.png",
+                    "https://p19-webcast.tiktokcdn.com/img/alisg/webcast-sg/envelope_comment_avatar.png~tplv-obj.png"
+                  ],
+                  "uri": "webcast-sg/envelope_comment_avatar.png",
+                  "height": 0,
+                  "width": 0,
+                  "avgColor": "#B8B8B8",
+                  "imageType": 0,
+                  "openWebUrl": "",
+                  "isAnimated": false
+                },
+                "verified": false,
+                "deprecated6": 0,
+                "deprecated7": "",
+                "status": 0,
+                "createTime": "0",
+                "modifyTime": "0",
+                "secret": 0,
+                "shareQrcodeUri": "",
+                "deprecated8": 0,
+                "badgeImageList": [],
+                "specialId": "",
+                "realTimeIcons": [],
+                "newRealTimeIcons": [],
+                "topVipNo": 0,
+                "userAttr": {
+                  "isMuted": false,
+                  "isAdmin": false,
+                  "isSuperAdmin": false,
+                  "muteDuration": "0",
+                  "adminPermissions": {},
+                  "hasVotingFunction": false,
+                  "isChannelAdmin": false
+                },
+                "payScore": "0",
+                "ticketCount": "0",
+                "linkMicStats": 0,
+                "displayId": "lelelepasu",
+                "withCommercePermission": false,
+                "withFusionShopEntry": false,
+                "deprecated21": "0",
+                "verifiedContent": "",
+                "topFans": [],
+                "secUid": "MS4wLjABAAAAtmSds5XDUNyDIN1bPMdB2fTTXciKjyzq31NWXbNiE6pNBx5wdNFT7nn-Mj90ZHFY",
+                "userRole": 0,
+                "deprecated9": {},
+                "deprecated10": {},
+                "deprecated11": {},
+                "deprecated12": 0,
+                "deprecated13": 0,
+                "deprecated14": {},
+                "mediaBadgeImageList": [],
+                "deprecated15": 0,
+                "userVipInfo": {},
+                "commerceWebcastConfigIds": [],
+                "borderList": [],
+                "badgeList": [],
+                "mintTypeLabel": [],
+                "deprecated19": false,
+                "allowFindByContacts": false,
+                "allowOthersDownloadVideo": false,
+                "allowOthersDownloadWhenSharingVideo": false,
+                "allowShareShowProfile": false,
+                "allowShowInGossip": false,
+                "allowShowMyAction": false,
+                "allowStrangeComment": false,
+                "allowUnfollowerComment": false,
+                "allowUseLinkmic": false,
+                "bgImgUrl": "",
+                "deprecated18": "",
+                "deprecated16": false,
+                "blockStatus": 0,
+                "commentRestrict": 0,
+                "constellation": "",
+                "disableIchat": 0,
+                "enableIchatImg": "0",
+                "exp": 0,
+                "fanTicketCount": "0",
+                "foldStrangerChat": false,
+                "followStatus": "0",
+                "deprecated28": false,
+                "deprecated29": "",
+                "ichatRestrictType": 0,
+                "idStr": "",
+                "isFollower": false,
+                "isFollowing": false,
+                "needProfileGuide": false,
+                "payScores": "0",
+                "pushCommentStatus": false,
+                "pushDigg": false,
+                "pushFollow": false,
+                "pushFriendAction": false,
+                "pushIchat": false,
+                "pushStatus": false,
+                "pushVideoPost": false,
+                "pushVideoRecommend": false,
+                "stats": {},
+                "deprecated17": false,
+                "verifiedReason": "",
+                "withCarManagementPermission": false,
+                "upcomingEventList": [],
+                "scmLabel": "",
+                "isBlock": false,
+                "isSubscribe": false,
+                "isAnchorMarked": false,
+                "enigmaInfo": {
+                  "isEnigmaMaskOn": false
+                }
+              },
+              "withColon": true
+            }
+          },
+          {
+            "type": 15,
+            "stringValue": "",
+            "imageValue": {
+              "image": {
+                "urlList": [
+                  "https://p16-webcast.tiktokcdn.com/img/alisg/webcast-sg/envelope_comment_coin.png~tplv-obj.png",
+                  "https://p19-webcast.tiktokcdn.com/img/alisg/webcast-sg/envelope_comment_coin.png~tplv-obj.png"
+                ],
+                "uri": "webcast-sg/envelope_comment_coin.png",
+                "height": 0,
+                "width": 0,
+                "avgColor": "#CCA3A3",
+                "imageType": 0,
+                "openWebUrl": "",
+                "isAnimated": false
+              }
+            }
+          },
+          {
+            "type": 1,
+            "format": {
+              "color": "#FFFFFF",
+              "bold": false,
+              "italic": true,
+              "weight": 400,
+              "italicAngle": 0,
+              "fontSize": 13,
+              "useHeighLightColor": false,
+              "useRemoteClor": false
+            },
+            "stringValue": "20"
+          }
+        ]
+      },
+      "foldType": "0",
+      "anchorFoldType": "0",
+      "priorityScore": "0",
+      "logId": "",
+      "msgProcessFilterK": "",
+      "msgProcessFilterV": "",
+      "fromIdc": "",
+      "toIdc": "",
+      "filterMsgTags": [],
+      "anchorPriorityScore": "0",
+      "roomMessageHeatLevel": "0",
+      "foldTypeForWeb": "0",
+      "anchorFoldTypeForWeb": "0",
+      "clientSendTime": "0",
+      "dispatchStrategy": 0
+    },
+    "envelopeInfo": {
+      "envelopeId": "7696052723507825415",
+      "businessType": 1,
+      "envelopeIdc": "my",
+      "sendUserName": "lelelepasu",
+      "diamondCount": 20,
+      "peopleCount": 16,
+      "unpackAt": 1791884462,
+      "sendUserId": "7213706120656405509",
+      "sendUserAvatar": {
+        "urlList": [
+          "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/804ae6aa31d9d0b9bb05a81dc1dedae7~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=9d1e2bba&x-expires=1792054800&x-signature=BI%2BeF69jPrSpGZt5kU5TMA1f6KY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+          "https://p19-common-sign.tiktokcdn.com/tos-alisg-avt-0068/804ae6aa31d9d0b9bb05a81dc1dedae7~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=0e4d5e93&x-expires=1792054800&x-signature=kHIc6ihqPB3uWqnCr9u4lmhY6yU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+          "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/804ae6aa31d9d0b9bb05a81dc1dedae7~tplv-tiktok-shrink:72:72.jpeg?dr=14561&refresh_token=a9153879&x-expires=1792054800&x-signature=m8mt32ybAnHYz8Xt%2B%2F76uK1glfk%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my"
+        ],
+        "uri": "100x100/tos-alisg-avt-0068/804ae6aa31d9d0b9bb05a81dc1dedae7",
+        "height": 0,
+        "width": 0,
+        "avgColor": "",
+        "imageType": 0,
+        "openWebUrl": "",
+        "isAnimated": false
+      },
+      "createAt": "1791884283206",
+      "roomId": "7696074058131049223",
+      "followShowStatus": 1,
+      "skinId": 0,
+      "voteCount": 0,
+      "senderEnigmaInfo": {
+        "isEnigmaMaskOn": false
+      },
+      "superFanCount": 0
+    },
+    "display": 1,
+    "publicAreaMsgCommon": {
+      "scrollGapCount": "0",
+      "anchorScrollGapCount": "0",
+      "releaseToScrollArea": false,
+      "anchorReleaseToScrollArea": false,
+      "isAnchorMarked": false,
+      "creatorSuccessInfo": {
+        "tags": [],
+        "topicList": []
+      },
+      "adminFoldType": "0",
+      "hideAboveScrollArea": false
+    },
+    "topGifterRank": 0,
+    "tikfinityUserId": "6290f8c8-d7a8-4bcb-9c20-388a4debc586",
+    "tikfinityUsername": "buergerteriyaki"
+  }
+}
