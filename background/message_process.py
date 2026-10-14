@@ -56,6 +56,10 @@ def on_tiktok_event(res):
         if follower:
             print(f"-> [SOCKET.IO FOLLOW] '{follower}' followed.")
             join_viewer(follower, profile_url)
+    elif event == "member":
+        member = d.get("uniqueId")
+        if member:
+            print(f"-> [SOCKET.IO MEMBER] '{member}' join the stream.")
 
 @sio.event
 def connect():
