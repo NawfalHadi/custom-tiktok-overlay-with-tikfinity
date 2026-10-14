@@ -3,6 +3,8 @@ import sqlite3
 import os
 import requests
 
+from .streak_process import process_gift_streak
+
 # Initialize standard Socket.IO client
 sio = socketio.Client()
 
@@ -69,9 +71,14 @@ def handle_tiktok_event(res):
     try:
         if res.get("event") == "gift":
             gift_data = res.get("data", {})
+            
             gift_id = gift_data.get("giftId")
-            unique_id = gift_data.get("uniqueId")
+            unique_id = gift_data.get("uniqueId") or gift_data.get("nickname") or "User"
             nickname = gift_data.get("nickname")
+            avatar_url = gift_data.get("profilePictureUrl") or ""
+            gift_name = gift_data.get("giftName", "Special Gift")
+            diamond_count = int(gift_data.get("diamondCount", 0))
+            repeat_count = int(gift_data.get("repeatCount", 1))
 
             # 1. Check for target membership giftId (7934)
             if gift_id == 7934:
@@ -79,29 +86,9 @@ def handle_tiktok_event(res):
                 process_member_gift(unique_id, nickname)
                 print("========================================================================\n")
 
-            # 2. Check for Upeti Epic Transition (> 20 coins)
-            diamond_count = int(gift_data.get("diamondCount", 0))
-            repeat_count = int(gift_data.get("repeatCount", 1))
-            total_coins = diamond_count * repeat_count
-
-            if total_coins >= 1:
-                unique_id = gift_data.get("uniqueId") or gift_data.get("nickname") or "User"
-                avatar_url = gift_data.get("profilePictureUrl") or ""
-                gift_name = gift_data.get("giftName", "Special Gift")
-                gift_icon_url = gift_data.get("giftPictureUrl", "")
-                
-                print(f"-> [UPETI DETECTED] @{unique_id} sent {gift_name} x{repeat_count} ({total_coins} coins). Triggering Epic Transition & Auto-Show!")
-                
-                try:
-                    requests.post("http://127.0.0.1:5000/upetitriger", json={
-                        "username": unique_id,
-                        "avatarUrl": avatar_url,
-                        "giftName": gift_name,
-                        "giftCount": repeat_count,
-                        "giftIconUrl": gift_icon_url
-                    }, timeout=2.0)
-                except Exception as req_err:
-                    print(f"-> [HTTP ERROR] Failed to trigger upeti endpoint: {req_err}")
+            # 2. Delegate to streak_process for CSV tracking and 5-second window accumulation
+            if diamond_count > 0:
+                process_gift_streak(unique_id, avatar_url, gift_name, diamond_count, repeat_count)
 
     except Exception as e:
         print(f"Error processing socket event payload: {e}")

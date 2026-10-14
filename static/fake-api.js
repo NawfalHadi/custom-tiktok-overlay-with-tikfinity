@@ -11,8 +11,8 @@ const payloads = {
       "event": "gift",
       "data": {
         "uniqueId": "pementolan",
-        "diamondCount": 25,
-        "giftName": "Galaxy",
+        "diamondCount": 1,
+        "giftName": "Rose",
         "profilePictureUrl": "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktokx-cropcenter:100:100.webp"
       }
     },
