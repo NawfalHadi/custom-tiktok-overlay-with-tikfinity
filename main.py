@@ -5,9 +5,10 @@ from flask_socketio import SocketIO
 from pathlib import Path
 import sqlite3
 
-# Background Function
+# Background Functions
 from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process
+from background.streak_process import log_and_calculate_streak
 from listener import run_tikfinity_listener
 
 # 1. Import the initialization function
@@ -72,7 +73,6 @@ def get_members():
 @app.route('/api/members/<int:member_id>/announce', methods=['POST'])
 def toggle_announce(member_id):
     data = request.get_json() or {}
-    # Force set to 1 or toggle if not specified
     new_status = data.get('is_announced', 1)
 
     conn = sqlite3.connect(DB_PATH, timeout=10.0)
@@ -87,7 +87,7 @@ def toggle_announce(member_id):
 def control_panel():
     return render_template('templates/control.html')
 
-# ==============
+# ============== Overlays ==============
 
 @app.route('/comments-overlay')
 def comments_overlay():
@@ -105,7 +105,6 @@ def transition_overlay():
 def upeti_page():
     return render_template('templates/upeti.html')
 
-
 @app.route('/kaisars')
 def kaisars_page():
     return render_template('templates/kaisars.html')
@@ -114,18 +113,15 @@ def kaisars_page():
 def break_trigger():
     data = request.get_json() or {}
     username = data.get('username', 'UNKNOWN')
-    
-    # Change 'profilePictureUrl' to 'avatarUrl' to match your JavaScript payload
     avatar_url = data.get('avatarUrl', 'https://via.placeholder.com/150')
     
-    # Broadcast the data payload to all connected clients (overlays)
     socketio.emit('trigger_transition', {
         'username': username,
         'avatarUrl': avatar_url
     })
     return jsonify({"status": "success"}), 200
 
-# ==================== upeti action ==========
+# ==================== Upeti Actions & Gift Events ====================
 
 @app.route('/api/upeti/toggle', methods=['POST'])
 def toggle_upeti_state():
@@ -134,33 +130,50 @@ def toggle_upeti_state():
     
     upeti_state["active"] = new_active_status
 
-    # Fire transition first, then update the persistent overlay visibility
     socketio.emit('trigger_upeti_transition', upeti_state)
     socketio.emit('update_upeti_state', upeti_state)
     return jsonify({"success": True, "active": upeti_state["active"]})
 
-@app.route('/upetitriger', methods=['POST'])
-def upeti_trigger():
+@app.route('/api/gift-event', methods=['POST'])
+def gift_event_endpoint():
     data = request.get_json() or {}
-    
-    # Update latest state data and force active to True
-    upeti_state["username"] = data.get("username", upeti_state["username"])
-    upeti_state["avatarUrl"] = data.get("avatarUrl", upeti_state["avatarUrl"])
-    upeti_state["giftName"] = data.get("giftName", upeti_state["giftName"])
-    upeti_state["giftCount"] = data.get("giftCount", upeti_state["giftCount"])
-    upeti_state["giftIconUrl"] = data.get("giftIconUrl", upeti_state["giftIconUrl"])
-    upeti_state["active"] = True
+    username = data.get("username", "User")
+    avatar_url = data.get("avatarUrl", "")
+    gift_name = data.get("giftName", "Gift")
+    diamond_count = int(data.get("diamondCount", 1))
+    repeat_count = int(data.get("repeatCount", 1))
 
-    # Fire transition first, then show the persistent overlay
-    socketio.emit('trigger_upeti_transition', upeti_state)
-    socketio.emit('update_upeti_state', upeti_state)
-    return jsonify({"status": "success"}), 200
+    # 1. Log to CSV once and calculate total streak for the 5-second window
+    total_streak = log_and_calculate_streak(username, diamond_count, repeat_count)
+    target_coins = 20  # Threshold target for Upeti transition
+
+    # 2. ALWAYS broadcast live progress bar updates to the HUD overlay
+    socketio.emit('streak_update', {
+        "username": username,
+        "avatarUrl": avatar_url,
+        "currentCoins": total_streak,
+        "targetCoins": target_coins,
+        "giftName": gift_name
+    })
+
+    # 3. ONLY trigger full Upeti transition if the 20-coin target is reached/crossed
+    if total_streak >= target_coins:
+        upeti_state["username"] = username
+        upeti_state["avatarUrl"] = avatar_url
+        upeti_state["giftName"] = gift_name
+        upeti_state["giftCount"] = total_streak
+        upeti_state["active"] = True
+
+        socketio.emit('trigger_upeti_transition', upeti_state)
+        socketio.emit('update_upeti_state', upeti_state)
+
+    return jsonify({"status": "success", "total_streak": total_streak}), 200
 
 @app.route('/upeti-transition')
 def upeti_transition_page():
     return render_template('templates/upeti-transition.html')
 
-# =============== controls route ============
+# =============== Controls Route ============
 @app.route('/fake-api-panel')
 def fake_api_panel():
     return render_template('templates/controls/api-panel.html')
@@ -168,16 +181,19 @@ def fake_api_panel():
 @app.route('/api/fake-trigger', methods=['POST'])
 def fake_trigger():
     payload = request.get_json() or {}
-    
-    # Broadcast the payload using the same event name your overlays listen to (e.g., 'tiktok_event')
     socketio.emit('tiktok_event', payload)
-    
     return jsonify({"status": "success", "event": payload.get("event")}), 200
 
-# =============== Secenes route ============
+# ============= HUD Route ============
+@app.route('/gift-hud')
+def gift_hud_page():
+    return render_template('templates/hud/gift-hud.html')
+
+# =============== Scene Route ============
 @app.route('/ending')
 def ending_page():
     return render_template('templates/scene/ending.html')
+
 
 if __name__ == '__main__':
 

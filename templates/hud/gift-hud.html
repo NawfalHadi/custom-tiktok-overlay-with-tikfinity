@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact Gift Lifebar HUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:ital,wght@0,500;0,700;0,900;1,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Oswald', sans-serif;
+            background: transparent;
+            overflow: hidden;
+        }
+        /* Slanted polygon shapes */
+        .skew-bar {
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
+        }
+        .skew-box {
+            clip-path: polygon(0 0, 82% 0, 100% 100%, 0% 100%);
+        }
+        .name-tag {
+            clip-path: polygon(6% 0, 100% 0, 94% 100%, 0% 100%);
+        }
+        .glow-cyan {
+            text-shadow: 0 0 8px rgba(6, 182, 212, 0.7);
+        }
+        .glow-gold {
+            text-shadow: 0 0 8px rgba(234, 179, 8, 0.7);
+        }
+    </style>
+</head>
+<body class="w-screen h-screen p-6 flex flex-col justify-end items-start">
+
+    <!-- Container for active player lifebars -->
+    <div id="hud-container" class="flex flex-col space-y-4 max-w-sm w-full">
+        <!-- Dynamic lifebars injected here -->
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        const socket = io({ transports: ['polling'] });
+        const container = document.getElementById('hud-container');
+        
+        // Track active lifebars by username: { username: { element, fillEl, countEl, timer } }
+        const activeBars = {};
+
+        socket.on('streak_update', (data) => {
+            const username = data.username || "User";
+            const avatarUrl = data.avatarUrl || "https://via.placeholder.com/150";
+            const current = data.currentCoins || 1;
+            const target = data.targetCoins || 20;
+            
+            updateOrCreateLifebar(username, avatarUrl, current, target);
+        });
+
+        function updateOrCreateLifebar(username, avatarUrl, current, target) {
+            let percentage = Math.min(Math.round((current / target) * 100), 100);
+
+            if (activeBars[username]) {
+                // Update existing lifebar
+                const barData = activeBars[username];
+                barData.countEl.innerText = current;
+                barData.fillEl.style.width = `${percentage}%`;
+
+                // Reset the 5-second inactivity timeout
+                clearTimeout(barData.timer);
+                barData.timer = setTimeout(() => removeLifebar(username), 5000);
+
+                // Quick visual pulse effect
+                barData.element.classList.add('scale-105');
+                setTimeout(() => barData.element.classList.remove('scale-105'), 200);
+
+            } else {
+                // Create brand new compact Lifebar row
+                const card = document.createElement('div');
+                card.className = "flex flex-col space-y-0.5 transform translate-x-[-120%] opacity-0 transition-all duration-300 ease-out w-[340px]";
+                
+                card.innerHTML = `
+                    <div class="flex items-center relative">
+                        
+                        <!-- 1. User Profile Picture Container -->
+                        <div class="relative z-30 w-10 h-10 bg-zinc-950 border border-cyan-400 rounded-lg overflow-hidden shadow-lg shrink-0 -mr-2 flex items-center justify-center">
+                            <img src="${avatarUrl}" alt="Avatar" class="w-full h-full object-cover">
+                        </div>
+
+                        <!-- 2. Left Gold Counter Box -->
+                        <div class="relative z-20 w-20 h-9 bg-gradient-to-r from-yellow-400 to-amber-500 skew-box flex flex-col justify-center items-center pl-3 pr-2 shadow-md">
+                            <span class="text-base font-black italic tracking-tighter text-black leading-none glow-gold count-val">${current}</span>
+                            <span class="text-[7px] font-black tracking-widest text-zinc-900 uppercase">COINS</span>
+                        </div>
+
+                        <!-- 3. Main Sci-Fi Slanted Progress Bar Track -->
+                        <div class="relative -ml-2.5 flex-1 h-9 bg-zinc-950/95 border border-cyan-400/80 skew-bar overflow-hidden shadow-lg">
+                            <!-- Absolute Fixed Percentage Fill -->
+                            <div class="progress-fill absolute left-0 top-0 bottom-0 bg-gradient-to-r from-cyan-400 via-blue-600 to-emerald-400 transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.7)]" 
+                                 style="width: ${percentage}%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Details: Player Tag & Level -->
+                    <div class="flex items-center justify-between pl-20 pr-2">
+                        <!-- Player Name Tag -->
+                        <div class="bg-zinc-900/90 border border-cyan-400/40 px-4 py-0.5 name-tag shadow-sm">
+                            <span class="text-[10px] font-black italic tracking-wider text-cyan-300 glow-cyan uppercase">@${username}</span>
+                        </div>
+                        <!-- Level Indicator -->
+                        <div class="text-[9px] font-black tracking-widest text-yellow-400 glow-gold">
+                            LVL ${Math.floor(current / 5) + 1}
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+
+                // Smooth slide-in entrance
+                setTimeout(() => card.classList.remove('translate-x-[-120%]', 'opacity-0'), 50);
+
+                // 5-second auto-dismiss timeout
+                const timer = setTimeout(() => removeLifebar(username), 5000);
+
+                activeBars[username] = {
+                    element: card,
+                    fillEl: card.querySelector('.progress-fill'),
+                    countEl: card.querySelector('.count-val'),
+                    timer: timer
+                };
+            }
+        }
+
+        function removeLifebar(username) {
+            if (activeBars[username]) {
+                const card = activeBars[username].element;
+                card.classList.add('translate-x-[-120%]', 'opacity-0');
+                setTimeout(() => {
+                    card.remove();
+                    delete activeBars[username];
+                }, 300);
+            }
+        }
+    </script>
+</body>
+</html>
