@@ -105,6 +105,30 @@ def dashboard_telling():
 
     return render_template('templates/dashboard/telling.html', user=dict(user_data))
 
+@app.route('/dashboard/alerting')
+def dashboard_alerting():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    user_id = session['user_id']
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT v.username, v.email, v.profile_picture_url, s.points 
+        FROM tb_viewers v
+        LEFT JOIN tb_stats s ON v.id = s.id_viewer
+        WHERE v.id = ?
+    """, (user_id,))
+    user_data = cursor.fetchone()
+    conn.close()
+
+    if not user_data:
+        session.clear()
+        return redirect('/login')
+
+    return render_template('templates/dashboard/alerting.html', user=dict(user_data))
+
 @app.route('/logout')
 def logout():
     session.clear()

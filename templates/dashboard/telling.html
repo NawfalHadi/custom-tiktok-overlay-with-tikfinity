@@ -25,7 +25,7 @@
         .skew-box {
             clip-path: polygon(4% 0, 100% 0, 96% 100%, 0% 100%);
         }
-        /* Custom scrollbar for rules box if content overflows on small screens */
+        /* Custom scrollbar untuk kotak aturan jika konten memanjang */
         ::-webkit-scrollbar {
             width: 4px;
         }
@@ -56,7 +56,7 @@
 
         <!-- User Profile & Stats Card -->
         <div class="z-10 flex flex-col items-center space-y-3">
-            <!-- Profile Avatar with Glow Border -->
+            <!-- Profile Avatar dengan Border Glow -->
             <div class="relative w-20 h-20 rounded-2xl p-1 bg-gradient-to-tr from-yellow-500 to-amber-600 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
                 <img src="{{ user.profile_picture_url }}" alt="Avatar" class="w-full h-full object-cover rounded-xl bg-black">
             </div>
@@ -80,6 +80,13 @@
                     <span class="text-xs font-bold text-yellow-600">PTS</span>
                 </div>
             </div>
+        </div>
+
+        <!-- Action Button: Hi Admin! -->
+        <div class="z-10">
+            <a href="/dashboard/alerting" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black text-sm italic tracking-wider uppercase rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all flex items-center justify-center space-x-2 transform active:scale-95">
+                <span>⚡ Hi Admin! (Kirim Alert)</span>
+            </a>
         </div>
 
         <!-- Rules & Point System Explanation Card -->
