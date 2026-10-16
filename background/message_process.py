@@ -69,6 +69,14 @@ def on_tiktok_event(res):
         if follower:
             print(f"-> [SOCKET.IO FOLLOW] '{follower}' followed.")
             join_viewer(follower, profile_url)
+
+    elif event == "gift":
+        giftId = d.get("giftId")
+        user = d.get("uniqueId") or d.get("nickname") or "User"
+        if giftId == 7934:
+            print(f"-> [SOCKET.IO GIFT] '{user}' sent gift ID {giftId}.")
+            join_viewer(user, profile_url)
+            
     elif event == "member":
         member = d.get("uniqueId")
         if member:
