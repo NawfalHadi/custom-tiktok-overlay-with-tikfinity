@@ -2,6 +2,8 @@ import socketio
 import sqlite3
 from pathlib import Path
 
+from controller.auth_controller import verify_code_from_tiktok
+
 # Correct base directory: point to project root instead of background/
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / 'datas' / 'viewers.db'
@@ -49,8 +51,19 @@ def on_tiktok_event(res):
         user = d.get("uniqueId") or d.get("nickname") or "User"
         msg = d.get("comment", "")
         print(f"-> [SOCKET.IO CHAT] {user}: {msg}")
+        
+        # 1. Handle command !join
         if "!join" in msg.lower():
             join_viewer(user, profile_url)
+            
+        # 2. Handle command !verify <code_number>
+        if msg.strip().startswith("!verify"):
+            parts = msg.strip().split()
+            if len(parts) >= 2:
+                code_input = parts[1]
+                print(f"-> [VERIFY COMMAND] Dari @{user}: {msg}")
+                verify_code_from_tiktok(user, code_input)
+
     elif event == "follow":
         follower = d.get("uniqueId")
         if follower:

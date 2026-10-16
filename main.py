@@ -9,6 +9,8 @@ import sqlite3
 from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process
 from background.streak_process import log_and_calculate_streak
+from controller.auth_controller import create_pending_registration
+
 from listener import run_tikfinity_listener
 
 # 1. Import the initialization function
@@ -33,6 +35,30 @@ socketio = SocketIO(
 )
 
 DB_PATH = str(Path('datas') / 'viewers.db')
+
+# ============== Authentication Routes ==============
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({"success": False, "message": "Email dan Password wajib diisi!"}), 400
+
+        # Generate 6-digit code & simpan sementara di local JSON (termasuk hash password)
+        verify_code = create_pending_registration(email, password)
+
+        # PASTIKAN verify_code dikirim ke frontend agar card-nya muncul!
+        return jsonify({
+            "success": True, 
+            "verify_code": verify_code,
+            "message": f"Silakan ketik !verify {verify_code} di TikTok Live!"
+        }), 200
+
+    return render_template('templates/auth/register.html') # Sesuaikan path foldermu
+
 
 @app.route('/api/members', methods=['GET'])
 def get_members():

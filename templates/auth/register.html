@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Kesatria DGCB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #09090b;
+        }
+        .title-font {
+            font-family: 'Oswald', sans-serif;
+        }
+        .glow-title {
+            text-shadow: 0 0 15px rgba(234, 179, 8, 0.5);
+        }
+        .skew-btn {
+            clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="w-screen min-h-screen text-white flex items-center justify-center p-4">
+
+    <!-- Portrait Mobile Container -->
+    <div class="w-full max-w-sm bg-zinc-950/90 border-2 border-yellow-500/80 rounded-3xl p-6 shadow-[0_0_35px_rgba(234,179,8,0.25)] flex flex-col justify-between space-y-6 relative overflow-hidden">
+        
+        <!-- Background Sci-Fi Grid -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#eab30808_1px,transparent_1px),linear-gradient(to_bottom,#eab30808_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
+
+        <!-- Header Title Section -->
+        <div class="text-center space-y-1 z-10 pt-2">
+            <span class="text-xs font-bold tracking-[0.2em] text-yellow-500 uppercase">Daftar Untuk</span>
+            <h1 class="title-font text-2xl font-black italic tracking-wide text-white leading-tight uppercase">
+                Dinobatkan Sebagai
+            </h1>
+            <h2 class="title-font text-3xl font-black italic tracking-wider text-yellow-400 glow-title uppercase leading-none">
+                Kesatria Kerajaan DGCB
+            </h2>
+        </div>
+
+        <!-- Registration Form -->
+        <form id="registerForm" class="space-y-4 z-10">
+            <!-- Email Input -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold tracking-wider text-zinc-400 uppercase pl-1">Email</label>
+                <div class="relative">
+                    <input type="email" id="email" required
+                        placeholder="kesatria@dgcb.com" 
+                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-yellow-400 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder-zinc-600">
+                </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold tracking-wider text-zinc-400 uppercase pl-1">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" required
+                        placeholder="••••••••" 
+                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-yellow-400 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder-zinc-600">
+                </div>
+            </div>
+
+            <!-- Response Alert Box -->
+            <div id="alertBox" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn"
+                class="w-full py-3.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-black text-base italic tracking-wider uppercase rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all transform active:scale-95">
+                Daftar Kesatria
+            </button>
+        </form>
+
+        <!-- Footer Accent -->
+        <div class="text-center z-10 pb-1">
+            <p class="text-[10px] tracking-widest text-zinc-500 uppercase">Kerajaan DGCB /// Official Portal</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const alertBox = document.getElementById('alertBox');
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'MEMPROSES...';
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                alertBox.classList.remove('hidden', 'bg-red-500/20', 'text-red-400', 'bg-emerald-500/20', 'text-emerald-400');
+
+                if (response.ok && data.success) {
+                    alertBox.classList.add('bg-emerald-500/20', 'text-emerald-400');
+                    alertBox.innerText = data.message || 'Pendaftaran Berhasil!';
+                } else {
+                    alertBox.classList.add('bg-red-500/20', 'text-red-400');
+                    alertBox.innerText = data.message || 'Pendaftaran Gagal!';
+                }
+            } catch (error) {
+                alertBox.classList.remove('hidden');
+                alertBox.classList.add('bg-red-500/20', 'text-red-400');
+                alertBox.innerText = 'Terjadi kesalahan jaringan.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'DAFTAR KESATRIA';
+            }
+        });
+    </script>
+</body>
+</html>
