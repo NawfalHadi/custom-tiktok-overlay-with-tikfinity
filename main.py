@@ -8,6 +8,7 @@ import sqlite3
 # Background Functions
 from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process
+from background.point_process import run_point_inspector
 from background.streak_process import log_and_calculate_streak
 from controller.auth_controller import create_pending_registration, authenticate_user
 
@@ -291,5 +292,8 @@ if __name__ == '__main__':
 
     gift_thread = threading.Thread(target=run_gift_inspector, daemon=True)
     gift_thread.start()
+
+    point_thread = threading.Thread(target=run_point_inspector, daemon=True)
+    point_thread.start()
 
     socketio.run(app, host='0.0.0.0', port=5000, debug=False)
