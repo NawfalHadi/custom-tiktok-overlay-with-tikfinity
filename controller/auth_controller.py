@@ -3,7 +3,7 @@ import json
 import os
 import sqlite3
 from pathlib import Path
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 PENDING_FILE = Path('datas') / 'pending_registrations.json'
 DB_PATH = str(Path('datas') / 'viewers.db')
@@ -48,6 +48,35 @@ def create_pending_registration(email, raw_password):
     }
     save_pending_data(pending)
     return verify_code
+
+def authenticate_user(email, raw_password):
+    """Memverifikasi email dan password hashed, lalu mengembalikan data user beserta points."""
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT v.id, v.username, v.email, v.password, v.profile_picture_url, s.points 
+            FROM tb_viewers v
+            LEFT JOIN tb_stats s ON v.id = s.id_viewer
+            WHERE v.email = ?
+        """, (email,))
+        user = cursor.fetchone()
+        
+        if user and user['password'] and check_password_hash(user['password'], raw_password):
+            return {
+                "id": user['id'],
+                "username": user['username'],
+                "email": user['email'],
+                "profile_picture_url": user['profile_picture_url'] or "https://via.placeholder.com/150",
+                "points": user['points'] if user['points'] is not None else 0
+            }
+        return None
+    except Exception as e:
+        print(f"-> [LOGIN ERROR] {e}")
+        return None
+    finally:
+        conn.close()
 
 def verify_code_from_tiktok(username, code_input):
     pending = get_pending_data()

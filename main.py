@@ -1,6 +1,6 @@
 import threading
 import logging
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from flask_socketio import SocketIO
 from pathlib import Path
 import sqlite3
@@ -9,7 +9,7 @@ import sqlite3
 from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process
 from background.streak_process import log_and_calculate_streak
-from controller.auth_controller import create_pending_registration
+from controller.auth_controller import create_pending_registration, authenticate_user
 
 from listener import run_tikfinity_listener
 
@@ -59,6 +59,55 @@ def register():
 
     return render_template('templates/auth/register.html') # Sesuaikan path foldermu
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({"success": False, "message": "Email dan Password wajib diisi!"}), 400
+
+        user = authenticate_user(email, password)
+        if user:
+            # Simpan session login
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            return jsonify({"success": True, "message": "Login Berhasil!", "redirect": "/dashboard/telling"}), 200
+        else:
+            return jsonify({"success": False, "message": "Email atau Password salah!"}), 401
+
+    return render_template('templates/auth/login.html')
+
+@app.route('/dashboard/telling')
+def dashboard_telling():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    user_id = session['user_id']
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT v.username, v.email, v.profile_picture_url, s.points 
+        FROM tb_viewers v
+        LEFT JOIN tb_stats s ON v.id = s.id_viewer
+        WHERE v.id = ?
+    """, (user_id,))
+    user_data = cursor.fetchone()
+    conn.close()
+
+    if not user_data:
+        session.clear()
+        return redirect('/login')
+
+    return render_template('templates/dashboard/telling.html', user=dict(user_data))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
 
 @app.route('/api/members', methods=['GET'])
 def get_members():
@@ -231,6 +280,8 @@ if __name__ == '__main__':
         "giftCount": 1,
         "giftIconUrl": "https://img.icons8.com/color/96/gift.png"
     }
+
+    app.secret_key = 'dgcb_secret_key_sangat_aman'
 
     listener_thread = threading.Thread(target=run_tikfinity_listener, args=(socketio,), daemon=True)
     listener_thread.start()
