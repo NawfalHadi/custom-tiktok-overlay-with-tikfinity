@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Alert Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body class="bg-transparent text-white overflow-hidden p-6">
+    <div id="alert-container" class="flex flex-col gap-3 max-w-sm"></div>
+
+    <script>
+        const socket = io();
+
+        socket.on('message_alert', function(data) {
+            const container = document.getElementById('alert-container');
+            const alertEl = document.createElement('div');
+            alertEl.className = 'bg-zinc-900/90 border border-zinc-700 p-4 rounded-xl shadow-2xl backdrop-blur-md transform translate-y-4 opacity-0 transition-all duration-300 flex items-center gap-3';
+            alertEl.innerHTML = `
+                <div class="bg-indigo-600 p-2.5 rounded-lg font-bold text-sm">💬</div>
+                <div>
+                    <h4 class="font-bold text-sm text-yellow-400">${data.username || 'User'}</h4>
+                    <p class="text-xs text-zinc-300">${data.message || 'Sent a message!'}</p>
+                </div>
+            `;
+            container.appendChild(alertEl);
+
+            setTimeout(() => {
+                alertEl.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                alertEl.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => alertEl.remove(), 300);
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

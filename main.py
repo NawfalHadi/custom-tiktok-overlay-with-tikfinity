@@ -134,6 +134,26 @@ def logout():
     session.clear()
     return redirect('/login')
 
+# ============== Alert Routes ============
+@socketio.on('message_alert')
+def handle_message_alert(data):
+    # Broadcast the message alert to all connected overlay clients
+    socketio.emit('message_alert', data)
+
+@socketio.on('media_alert')
+def handle_media_alert(data):
+    # Broadcast the media/rickroll alert to all connected overlay clients
+    socketio.emit('media_alert', data)
+
+@app.route('/msg-alert')
+def msg_alert_overlay():
+    return render_template('templates/alert/message_alert.html')
+
+@app.route('/media-alert')
+def media_alert_overlay():
+    return render_template('templates/alert/media_alert.html')
+
+
 @app.route('/api/members', methods=['GET'])
 def get_members():
     search = request.args.get('search', '').strip()

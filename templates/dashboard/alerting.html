@@ -86,12 +86,12 @@
                 </div>
 
                 <!-- Tier Info Message -->
-                <div class="bg-black/50 border border-zinc-800 rounded-xl p-2.5 text-[10px] space-y-1 text-zinc-300">
+                <div class="bg-black/50 border border-zinc-800 rounded-2xl p-2.5 text-[10px] space-y-1 text-zinc-300">
                     <div class="flex justify-between font-bold text-cyan-300">
                         <span>Ketentuan Biaya Pesan:</span>
                         <span id="msgCostDisplay">1,000 Pts</span>
                     </div>
-                    <p class="text-zinc-400">• 1 - 20 Kata = 1.000 Pts | 21 - 40 Kata = 1.500 Pts | 41 - 60 Kata = 2.000 Pts, dst (+500 pts per 20 kata).</p>
+                    <p class="text-zinc-400">• 1 - 20 Kata = 1.000 Pts | 21 - 40 Kata = 1.500 Pts | 41 - 60 Kata = 2.000 Pts, dst.</p>
                 </div>
             </div>
 
@@ -104,13 +104,27 @@
                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-400 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none transition-colors placeholder-zinc-600">
                 </div>
 
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold tracking-wider text-zinc-400 uppercase pl-1">Durasi Pemutaran</label>
+                    <select id="mediaDuration" onchange="calculateMediaCost()"
+                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-400 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none transition-colors">
+                        <option value="10">10 Detik (5,000 Pts)</option>
+                        <option value="15">15 Detik (10,000 Pts)</option>
+                        <option value="20" selected>20 Detik (15,000 Pts)</option>
+                        <option value="25">25 Detik (20,000 Pts)</option>
+                        <option value="30">30 Detik (25,000 Pts)</option>
+                        <option value="45">45 Detik (40,000 Pts)</option>
+                        <option value="60">60 Detik (55,000 Pts)</option>
+                    </select>
+                </div>
+
                 <!-- Tier Info Media -->
-                <div class="bg-black/50 border border-zinc-800 rounded-xl p-2.5 text-[10px] space-y-1 text-zinc-300">
+                <div class="bg-black/50 border border-zinc-800 rounded-2xl p-2.5 text-[10px] space-y-1 text-zinc-300">
                     <div class="flex justify-between font-bold text-yellow-400">
-                        <span>Syarat Media Share:</span>
-                        <span>15,000 Pts (Tetap)</span>
+                        <span>Biaya Media Share:</span>
+                        <span id="mediaCostDisplay">15,000 Pts</span>
                     </div>
-                    <p class="text-zinc-400">• Memutar video atau media langsung di layar stream dengan minimum 15.000 poin.</p>
+                    <p class="text-zinc-400">• 10s=5rb | 15s=10rb | 20s=15rb (Kelipatan seterusnya bertambah proporsional).</p>
                 </div>
             </div>
 
@@ -140,7 +154,6 @@
             const tabMedia = document.getElementById('tabMedia');
             const secMsg = document.getElementById('sectionMessage');
             const secMedia = document.getElementById('sectionMedia');
-            const submitBtn = document.getElementById('submitAlertBtn');
 
             if (tab === 'message') {
                 tabMsg.className = "py-2 text-xs font-black italic uppercase rounded-lg transition-all bg-cyan-500 text-black shadow-md";
@@ -153,31 +166,48 @@
                 tabMsg.className = "py-2 text-xs font-black italic uppercase rounded-lg transition-all text-zinc-400 hover:text-white";
                 secMedia.classList.remove('hidden');
                 secMsg.classList.add('hidden');
-                calculatedCost = 15000;
-                submitBtn.innerText = "Kirim Media Share (15,000 PTS)";
+                calculateMediaCost();
             }
         }
 
         function calculateMessageCost() {
+            if (currentActiveTab !== 'message') return;
             const text = document.getElementById('msgInput').value.trim();
-            // Hitung jumlah kata
             const words = text === "" ? 0 : text.split(/\s+/).length;
             document.getElementById('wordCount').innerText = `${words} kata`;
 
-            // Rumus Tier Pesan:
-            // 1-20 kata = 1000 pts
-            // 21-40 kata = 1500 pts
-            // 41-60 kata = 2000 pts, dst (+500 pts tiap kelipatan 20 kata)
             if (words <= 0) {
                 calculatedCost = 1000;
             } else {
-                let tiers = Math.floor((words - 1) / 20);
+                let tiers = Math.floor((words - 1) / 10);
                 calculatedCost = 1000 + (tiers * 500);
             }
 
             document.getElementById('msgCostDisplay').innerText = `${calculatedCost.toLocaleString()} Pts`;
             document.getElementById('submitAlertBtn').innerText = `Kirim Alert Ke Layar (${calculatedCost.toLocaleString()} PTS)`;
         }
+
+        function calculateMediaCost() {
+            if (currentActiveTab !== 'media') return;
+            const seconds = parseInt(document.getElementById('mediaDuration').value) || 10;
+
+            // Aturan baru:
+            // 10 detik = 5,000 pts
+            // 15 detik = 10,000 pts
+            // 20 detik = 15,000 pts
+            // Kelipatan seterusnya (selisih per 5 detik adalah 5,000 pts)
+            if (seconds <= 10) {
+                calculatedCost = 5000;
+            } else {
+                let extraSteps = (seconds - 10) / 5;
+                calculatedCost = 5000 + (extraSteps * 5000);
+            }
+
+            document.getElementById('mediaCostDisplay').innerText = `${calculatedCost.toLocaleString()} Pts`;
+            document.getElementById('submitAlertBtn').innerText = `Kirim Media Share (${calculatedCost.toLocaleString()} PTS)`;
+        }
+
+        const socketIo = io();
 
         function submitAlert() {
             const userPoints = parseInt(document.getElementById('userPoints').getAttribute('data-points')) || 0;
@@ -191,8 +221,23 @@
                 return;
             }
 
+            // Trigger Socket berdasarkan Tab aktif
+            if (currentActiveTab === 'message') {
+                const messageText = document.getElementById('msgInput').value.trim();
+                if (!messageText) {
+                    alertBox.classList.add('bg-red-500/20', 'text-red-400');
+                    alertBox.innerText = 'Pesan tidak boleh kosong!';
+                    return;
+                }
+                socket.emit('message_alert', { username: '{{ user.username }}', message: messageText });
+            } else {
+                const mediaUrl = document.getElementById('mediaUrlInput').value.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+                const durationVal = parseInt(document.getElementById('mediaDuration').value) || 20;
+                socket.emit('media_alert', { username: '{{ user.username }}', url: mediaUrl, duration: durationVal });
+            }
+
             alertBox.classList.add('bg-emerald-500/20', 'text-emerald-400');
-            alertBox.innerText = `[UI MOCK] Alert berhasil disiapkan seharga ${calculatedCost.toLocaleString()} PTS!`;
+            alertBox.innerText = `Berhasil mengirim alert seharga ${calculatedCost.toLocaleString()} PTS ke layar!`;
         }
     </script>
 </body>

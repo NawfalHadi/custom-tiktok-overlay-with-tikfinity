@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Alert Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body class="bg-transparent text-white overflow-hidden flex items-center justify-center h-screen">
+    <div id="media-card" class="opacity-0 scale-95 transition-all duration-500 bg-zinc-900 border border-zinc-700 p-4 rounded-2xl shadow-2xl max-w-lg w-full">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800">
+            <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">🎬 Media Share Alert</span>
+            <span id="media-user" class="text-xs text-zinc-400 font-bold"></span>
+        </div>
+        <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+            <!-- Tambahan atribut allow lengkap agar browser memberi izin autoplay iframe -->
+            <iframe id="youtube-player" class="w-full h-full border-0" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        // Fungsi helper untuk mengambil ID video dari berbagai jenis format link YouTube (watch, youtu.be, embed)
+        function getYouTubeId(url) {
+            if (!url) return 'dQw4w9WgXcQ'; // Fallback ke Rickroll jika kosong
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : 'dQw4w9WgXcQ';
+        }
+
+        socket.on('media_alert', function(data) {
+            const card = document.getElementById('media-card');
+            const userLabel = document.getElementById('media-user');
+            const player = document.getElementById('youtube-player');
+
+            userLabel.innerText = data.username ? `@${data.username}` : 'Anonymous';
+            
+            // Ambil ID YouTube secara dinamis dari URL yang dikirim
+            const videoId = getYouTubeId(data.url);
+            
+            // Set URL embed dengan parameter autoplay dan origin untuk melewati blokir embed
+            player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&origin=${window.location.origin}`;
+            
+            card.classList.remove('opacity-0', 'scale-95');
+
+            const duration = (data.duration || 10) * 1000;
+            
+            setTimeout(() => {
+                card.classList.add('opacity-0', 'scale-95');
+                player.src = ""; // Matikan pemutaran video saat card tertutup
+            }, duration);
+        });
+    </script>
+</body>
+</html>

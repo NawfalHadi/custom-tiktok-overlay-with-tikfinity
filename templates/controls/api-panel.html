@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fake Socket Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen p-8 flex items-center justify-center">
     <div class="max-w-md w-full space-y-4 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 shadow-xl">
@@ -21,6 +22,12 @@
             <button onclick="sendFakeEvent('gift')" class="p-3 bg-yellow-600 hover:bg-yellow-500 text-black font-bold text-xs rounded-xl transition-all">
                 Simulate Gift Event
             </button>
+            <button onclick="sendCustomAlert('message')" class="p-3 bg-cyan-600 hover:bg-cyan-500 font-bold text-xs rounded-xl transition-all">
+                Simulate Message Alert (/msg-alert)
+            </button>
+            <button onclick="sendCustomAlert('media')" class="p-3 bg-rose-600 hover:bg-rose-500 font-bold text-xs rounded-xl transition-all">
+                Simulate Media Share (Rickroll /media-alert)
+            </button>
         </div>
 
         <div id="api-load-error" class="hidden rounded-xl border border-red-500/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
@@ -30,14 +37,15 @@
 
     <script src="{{ url_for('static', filename='fake-api.js') }}" onerror="document.getElementById('api-load-error').classList.remove('hidden');"></script>
     <script>
-        window.addEventListener('load', function () {
-            if (typeof window.sendFakeEvent !== 'function') {
-                const errorBox = document.getElementById('api-load-error');
-                if (errorBox) {
-                    errorBox.classList.remove('hidden');
-                }
+        const socket = io();
+
+        function sendCustomAlert(type) {
+            if (type === 'message') {
+                socket.emit('message_alert', { username: 'KnightNawfal', message: 'Halo dunia kesatria DGCB!' });
+            } else if (type === 'media') {
+                socket.emit('media_alert', { username: 'KnightNawfal', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', duration: 10 });
             }
-        });
+        }
     </script>
 </body>
 </html>
