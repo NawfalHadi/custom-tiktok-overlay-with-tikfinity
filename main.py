@@ -145,7 +145,7 @@ def gift_event_endpoint():
 
     # 1. Log to CSV once and calculate total streak for the 5-second window
     total_streak = log_and_calculate_streak(username, diamond_count, repeat_count)
-    target_coins = 20  # Threshold target for Upeti transition
+    target_coins = 5  # Threshold target for Upeti transition
 
     # 2. ALWAYS broadcast live progress bar updates to the HUD overlay
     socketio.emit('streak_update', {
