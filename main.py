@@ -137,16 +137,61 @@ def logout():
 # ============== Alert Routes ============
 @app.route('/api/trigger/msg-alert', methods=['POST'])
 def trigger_msg_alert():
+    if 'user_id' not in session:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    
     data = request.get_json() or {}
-    username = data.get('username', 'User')
-    message = data.get('message', '')
-
-    # Server memancarkan event socket ke overlay message_alert secara bersih lewat backend
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({"success": False, "message": "Pesan tidak boleh kosong!"}), 400
+        
+    # Hitung biaya di SERVER-SIDE (500 Pts per 10 kata) - tidak bisa dicurangi user!
+    words = len(message.split())
+    if words <= 0:
+        cost = 500
+    else:
+        tiers = (words - 1) // 10
+        cost = 500 + (tiers * 500)
+        
+    user_id = session['user_id']
+    
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Ambil poin asli langsung dari database (bukan dari HTML/DOM)
+    cursor.execute("SELECT points FROM tb_stats WHERE id_viewer = ?", (user_id,))
+    stat = cursor.fetchone()
+    current_points = stat['points'] if stat and stat['points'] is not None else 0
+    
+    if current_points < cost:
+        conn.close()
+        return jsonify({
+            "success": False, 
+            "message": f"Poin Anda tidak cukup! Butuh {cost:,} Pts, poin Anda saat ini {current_points:,} Pts."
+        }), 400
+        
+    # Kurangi poin di database SQLite secara aman
+    new_points = current_points - cost
+    cursor.execute("UPDATE tb_stats SET points = ? WHERE id_viewer = ?", (new_points, user_id))
+    conn.commit()
+    conn.close()
+    
+    # Ambil username dari session
+    username = session.get('username', 'Kesatria')
+    
+    # Broadcast alert ke overlay /msg-alert
     socketio.emit('message_alert', {
         'username': username,
         'message': message
     })
-    return jsonify({"success": True, "message": "Alert berhasil dikirim ke layar!"}), 200
+    
+    return jsonify({
+        "success": True, 
+        "message": "Alert berhasil dikirim ke layar!",
+        "remaining_points": new_points
+    }), 200
 
 @app.route('/msg-alert')
 def msg_alert_overlay():
