@@ -4,4 +4,4 @@
 *.db
 *.csv
 backup/
-datas/pending_registrastions.json
+datas/pending_registrations.json

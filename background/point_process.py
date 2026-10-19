@@ -13,12 +13,12 @@ COIN_TO_POINT_MULTIPLIER = 100
 MEMBER_POINT_MULTIPLIER = 1.2
 
 # Konfigurasi Anti-Spam Chat
-CHAT_POINT_REWARD = 10       
+CHAT_POINT_REWARD = 50       
 COOLDOWN_SECONDS = 30.0      
 MIN_MESSAGE_LENGTH = 3       
 
 # Konfigurasi Daily Check-in
-DAILY_POINT_REWARD = 100     
+DAILY_POINT_REWARD = 10000     
 
 # Konfigurasi Watch Time (Poin Pasif)
 WATCH_TIME_INTERVAL = 300    # Cek setiap 5 menit (300 detik)
