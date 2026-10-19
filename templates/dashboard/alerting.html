@@ -209,7 +209,7 @@
 
         const socketIo = io();
 
-        function submitAlert() {
+        async function submitAlert() {
             const userPoints = parseInt(document.getElementById('userPoints').getAttribute('data-points')) || 0;
             const alertBox = document.getElementById('alertBox');
 
@@ -221,23 +221,41 @@
                 return;
             }
 
-            // Trigger Socket berdasarkan Tab aktif
-            if (currentActiveTab === 'message') {
-                const messageText = document.getElementById('msgInput').value.trim();
-                if (!messageText) {
-                    alertBox.classList.add('bg-red-500/20', 'text-red-400');
-                    alertBox.innerText = 'Pesan tidak boleh kosong!';
-                    return;
-                }
-                socket.emit('message_alert', { username: '{{ user.username }}', message: messageText });
-            } else {
-                const mediaUrl = document.getElementById('mediaUrlInput').value.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-                const durationVal = parseInt(document.getElementById('mediaDuration').value) || 20;
-                socket.emit('media_alert', { username: '{{ user.username }}', url: mediaUrl, duration: durationVal });
+            const messageText = document.getElementById('msgInput').value.trim();
+            if (!messageText) {
+                alertBox.classList.add('bg-red-500/20', 'text-red-400');
+                alertBox.innerText = 'Pesan tidak boleh kosong!';
+                return;
             }
 
-            alertBox.classList.add('bg-emerald-500/20', 'text-emerald-400');
-            alertBox.innerText = `Berhasil mengirim alert seharga ${calculatedCost.toLocaleString()} PTS ke layar!`;
+            try {
+                // Mengirim data teks melalui HTTP POST ke Flask untuk di-broadcast ke msg-alert
+                const response = await fetch('/api/trigger/msg-alert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: '{{ user.username }}',
+                        message: messageText
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alertBox.classList.add('bg-emerald-500/20', 'text-emerald-400');
+                    alertBox.innerText = `Berhasil mengirim alert seharga ${calculatedCost.toLocaleString()} PTS ke layar!`;
+                    
+                    // Kosongkan input setelah berhasil terkirim
+                    document.getElementById('msgInput').value = '';
+                    calculateMessageCost();
+                } else {
+                    throw new Error(result.message || 'Gagal mengirim');
+                }
+            } catch (err) {
+                console.error(err);
+                alertBox.classList.add('bg-red-500/20', 'text-red-400');
+                alertBox.innerText = 'Terjadi kesalahan koneksi ke server.';
+            }
         }
     </script>
 </body>

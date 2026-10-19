@@ -135,23 +135,22 @@ def logout():
     return redirect('/login')
 
 # ============== Alert Routes ============
-@socketio.on('message_alert')
-def handle_message_alert(data):
-    # Broadcast the message alert to all connected overlay clients
-    socketio.emit('message_alert', data)
+@app.route('/api/trigger/msg-alert', methods=['POST'])
+def trigger_msg_alert():
+    data = request.get_json() or {}
+    username = data.get('username', 'User')
+    message = data.get('message', '')
 
-@socketio.on('media_alert')
-def handle_media_alert(data):
-    # Broadcast the media/rickroll alert to all connected overlay clients
-    socketio.emit('media_alert', data)
+    # Server memancarkan event socket ke overlay message_alert secara bersih lewat backend
+    socketio.emit('message_alert', {
+        'username': username,
+        'message': message
+    })
+    return jsonify({"success": True, "message": "Alert berhasil dikirim ke layar!"}), 200
 
 @app.route('/msg-alert')
 def msg_alert_overlay():
     return render_template('templates/alert/message_alert.html')
-
-@app.route('/media-alert')
-def media_alert_overlay():
-    return render_template('templates/alert/media_alert.html')
 
 
 @app.route('/api/members', methods=['GET'])
