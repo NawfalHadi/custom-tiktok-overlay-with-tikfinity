@@ -14,6 +14,8 @@ from controller.auth_controller import create_pending_registration, authenticate
 
 from listener import run_tikfinity_listener
 
+from saweria_webhook import saweria_bp, init_saweria_socket
+
 # 1. Import the initialization function
 from datas.init import initialize_database
 # 2. Run database initialization BEFORE anything else starts
@@ -21,6 +23,9 @@ initialize_database()
 
 app = Flask(__name__, template_folder='.')
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', transports=['websocket', 'polling'])
+
+init_saweria_socket(socketio)
+app.register_blueprint(saweria_bp)
 
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -36,6 +41,9 @@ socketio = SocketIO(
 )
 
 DB_PATH = str(Path('datas') / 'viewers.db')
+
+
+
 
 # ============== Authentication Routes ==============
 @app.route('/register', methods=['GET', 'POST'])
@@ -71,6 +79,7 @@ def login():
             return jsonify({"success": False, "message": "Email dan Password wajib diisi!"}), 400
 
         user = authenticate_user(email, password)
+
         if user:
             # Simpan session login
             session['user_id'] = user['id']
@@ -82,7 +91,7 @@ def login():
     return render_template('templates/auth/login.html')
 
 @app.route('/dashboard/telling')
-def dashboard_telling():
+def get_profile():
     if 'user_id' not in session:
         return redirect('/login')
     
