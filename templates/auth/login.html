@@ -50,8 +50,14 @@
 
             <div class="space-y-1">
                 <label class="text-xs font-bold tracking-wider text-zinc-400 uppercase pl-1">Password</label>
-                <input type="password" id="password" required placeholder="••••••••" 
-                    class="w-full bg-zinc-900 border border-zinc-700 focus:border-yellow-400 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder-zinc-600">
+                <div class="relative">
+                    <input type="password" id="password" required placeholder="••••••••" 
+                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-yellow-400 rounded-xl px-4 py-3 pr-16 text-sm text-white focus:outline-none transition-colors placeholder-zinc-600">
+                    <button type="button" id="togglePassword" aria-label="Show password" aria-pressed="false"
+                        class="absolute inset-y-0 right-3 text-xs font-bold uppercase tracking-wider text-yellow-400 hover:text-yellow-300">
+                        Show
+                    </button>
+                </div>
             </div>
 
             <div id="alertBox" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
@@ -74,6 +80,16 @@
     </div>
 
     <script>
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const isHidden = passwordInput.type === 'password';
+
+            passwordInput.type = isHidden ? 'text' : 'password';
+            this.innerText = isHidden ? 'Hide' : 'Show';
+            this.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+            this.setAttribute('aria-pressed', String(isHidden));
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
