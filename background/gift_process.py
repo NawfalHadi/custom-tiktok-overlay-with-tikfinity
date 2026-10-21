@@ -1,92 +1,65 @@
-import socketio
 import requests
-import sqlite3
 
-# Initialize standard Socket.IO client
-sio = socketio.Client()
+from background.helper.config import MEMBER_GIFT_ID, SERVER_URL
+from background.helper.db_process import add_member, db_connection, find_viewer
+from background.helper.socket_process import create_client, run_forever
 
-@sio.on('connect')
-def on_connect():
-    print("-> [GIFT PROCESSOR] Connected to Flask Socket.IO server!")
+LABEL = "GIFT PROCESSOR"
+GIFT_EVENT_URL = f"{SERVER_URL}/api/gift-event"
 
-@sio.on('disconnect')
-def on_disconnect():
-    print("-> [GIFT PROCESSOR] Disconnected from server.")
+sio = create_client(LABEL)
 
-@sio.on('tiktok_event')
+
+def process_member_gift(username):
+    try:
+        with db_connection() as conn:
+            viewer = find_viewer(conn, username)
+            if not viewer:
+                print(f"-> [ERROR] Cannot add member: viewer '{username}' was not found.")
+                return
+
+            viewer_id = viewer[0]
+            if add_member(conn, viewer_id):
+                print(f"-> [NEW MEMBER] '{username}' (Viewer ID: {viewer_id}) added to tb_members!")
+            else:
+                print(f"-> [INFO] '{username}' is already in tb_members.")
+    except Exception as error:
+        print(f"-> [DATABASE ERROR] Failed to add member: {error}")
+
+
+@sio.on("tiktok_event")
 def handle_tiktok_event(res):
     try:
-        if res.get("event") == "gift":
-
-            gift_data = res.get("data", {})
-            gift_id = gift_data.get("giftId", "")
-            unique_id = gift_data.get("uniqueId") or gift_data.get("nickname") or "User"
-            avatar_url = gift_data.get("profilePictureUrl") or ""
-            gift_name = gift_data.get("giftName", "Special Gift")
-            diamond_count = int(gift_data.get("diamondCount", 0))
-            repeat_count = int(gift_data.get("repeatCount", 1))
-
-            if gift_id == 7934:
-                process_member_gift(unique_id, gift_data.get("nickname", unique_id))
-
-            if diamond_count > 0:
-                # Forward raw gift data to Flask backend endpoint
-                try:
-                    requests.post("http://127.0.0.1:5000/api/gift-event", json={
-                        "username": unique_id,
-                        "avatarUrl": avatar_url,
-                        "giftName": gift_name,
-                        "diamondCount": diamond_count,
-                        "repeatCount": repeat_count
-                    }, timeout=2.0)
-                except Exception as req_err:
-                    print(f"-> [HTTP ERROR] Failed to forward gift event: {req_err}")
-
-    except Exception as e:
-        print(f"Error processing socket event payload: {e}")
-
-def process_member_gift(unique_id, nickname):
-    conn = sqlite3.connect('datas/viewers.db', timeout=10.0)
-    cursor = conn.cursor()
-    
-    try:
-        search_name = unique_id or nickname
-        cursor.execute('SELECT id FROM tb_viewers WHERE username = ?', (search_name,))
-        viewer = cursor.fetchone()
-        
-        if not viewer:
-            print(f"-> [ERROR] Cannot add member: viewer '{search_name}' was not found in tb_viewers.")
+        if res.get("event") != "gift":
             return
 
-        viewer_id = viewer[0]
+        data = res.get("data") or {}
+        username = data.get("uniqueId") or data.get("nickname") or "User"
+        diamond_count = int(data.get("diamondCount", 0))
+        repeat_count = int(data.get("repeatCount", 1))
 
-        cursor.execute('''
-            INSERT OR IGNORE INTO tb_members (id_viewer, joined_at)
-            VALUES (?, CURRENT_TIMESTAMP)
-        ''', (viewer_id,))
-        
-        if cursor.rowcount > 0:
-            conn.commit()
-            print(f"-> [NEW MEMBER] User '{search_name}' (Viewer ID: {viewer_id}) successfully added to tb_members!")
-        else:
-            print(f"-> [INFO] User '{search_name}' is already in tb_members.")
+        if data.get("giftId") == MEMBER_GIFT_ID:
+            process_member_gift(username)
 
-    except Exception as e:
-        print(f"-> [DATABASE ERROR] Failed to add member: {e}")
-    finally:
-        conn.close()
+        if diamond_count > 0:
+            try:
+                requests.post(GIFT_EVENT_URL, json={
+                    "username": username,
+                    "avatarUrl": data.get("profilePictureUrl") or "",
+                    "giftName": data.get("giftName", "Special Gift"),
+                    "diamondCount": diamond_count,
+                    "repeatCount": repeat_count,
+                }, timeout=2.0)
+            except requests.RequestException as error:
+                print(f"-> [HTTP ERROR] Failed to forward gift event: {error}")
+
+    except (TypeError, ValueError) as error:
+        print(f"-> [{LABEL}] Invalid gift payload: {error}")
 
 
 def run_gift_inspector():
-    while True:
-        try:
-            print("-> [GIFT PROCESSOR] Attempting to connect to Flask server on port 5000...")
-            sio.connect('http://127.0.0.1:5000', transports=['polling'])
-            sio.wait()
-        except Exception as e:
-            print(f"-> [GIFT PROCESSOR] Connection error: {e}. Reconnecting in 5s...")
-            import time
-            time.sleep(5)
+    run_forever(sio, LABEL)
+
 
 if __name__ == "__main__":
     run_gift_inspector()

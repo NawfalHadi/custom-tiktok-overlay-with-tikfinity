@@ -1,247 +1,156 @@
-import sqlite3
-import time
-from pathlib import Path
-from datetime import datetime
 import threading
-import socketio
+import time
+from datetime import datetime
 
-sio = socketio.Client()
-BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "datas" / "viewers.db"
+from background.helper.config import (
+    ACTIVITY_TIMEOUT,
+    CHAT_POINT_REWARD,
+    COIN_TO_POINT_MULTIPLIER,
+    COOLDOWN_SECONDS,
+    DAILY_POINT_REWARD,
+    MIN_MESSAGE_LENGTH,
+    WATCH_TIME_INTERVAL,
+    WATCH_TIME_REWARD,
+)
+from background.helper.db_process import (
+    add_points,
+    db_connection,
+    find_viewer,
+    member_multiplier,
+)
+from background.helper.socket_process import create_client, run_forever
 
-COIN_TO_POINT_MULTIPLIER = 100
-MEMBER_POINT_MULTIPLIER = 1.2
+LABEL = "POINT PROCESSOR"
 
-# Konfigurasi Anti-Spam Chat
-CHAT_POINT_REWARD = 50       
-COOLDOWN_SECONDS = 30.0      
-MIN_MESSAGE_LENGTH = 3       
+sio = create_client(LABEL)
 
-# Konfigurasi Daily Check-in
-DAILY_POINT_REWARD = 10000     
-
-# Konfigurasi Watch Time (Poin Pasif)
-WATCH_TIME_INTERVAL = 300    # Cek setiap 5 menit (300 detik)
-WATCH_TIME_REWARD = 20       # Poin yang didapat per interval
-ACTIVITY_TIMEOUT = 900       # Dianggap masih menonton jika aktif dalam 15 menit terakhir (900 detik)
-
-# Cache & Threading Lock
 last_chat_times = {}
-active_viewers = {}  # Format: { "username": timestamp_aktivitas_terakhir }
+active_viewers = {}  # { "username": last_activity_timestamp }
 viewer_lock = threading.Lock()
 
-def award_points(username, coin_value, gift_multiplier=1):
-    with sqlite3.connect(DB_PATH) as connection:
-        viewer = connection.execute(
-            """
-            SELECT v.id, EXISTS(
-                SELECT 1 FROM tb_members AS m WHERE m.id_viewer = v.id
-            )
-            FROM tb_viewers AS v
-            WHERE LOWER(v.username) = LOWER(?)
-            """,
-            (username,),
-        ).fetchone()
 
+def gift_tier(coin_value):
+    """Return (label, gift multiplier) for a gift's coin value."""
+    if coin_value < 5:
+        return "small gift", 1.0
+    if coin_value < 20:
+        return "medium gift", 1.15
+    if coin_value < 50:
+        return "large gift", 1.2
+    return "special gift", 1.4
+
+
+def award_points(username, coin_value, gift_multiplier=1.0):
+    with db_connection() as conn:
+        viewer = find_viewer(conn, username)
         if viewer is None:
             return
 
-        multiplier = (MEMBER_POINT_MULTIPLIER if viewer[1] else 1) * gift_multiplier
-        points = int(coin_value * COIN_TO_POINT_MULTIPLIER * multiplier)
-        connection.execute(
-            """
-            INSERT INTO tb_stats (id_viewer, points) VALUES (?, ?)
-            ON CONFLICT(id_viewer) DO UPDATE SET points = points + excluded.points
-            """,
-            (viewer[0], points),
-        )
+        viewer_id, _, is_member = viewer
+        points = int(coin_value * COIN_TO_POINT_MULTIPLIER
+                     * member_multiplier(is_member) * gift_multiplier)
+        add_points(conn, viewer_id, points)
+
 
 def award_chat_points(username):
-    global last_chat_times
-    current_time = time.time()
-    
-    if username in last_chat_times:
-        if current_time - last_chat_times[username] < COOLDOWN_SECONDS:
-            return False
+    now = time.time()
+    last = last_chat_times.get(username)
+    if last is not None and now - last < COOLDOWN_SECONDS:
+        return False
+    last_chat_times[username] = now
 
-    last_chat_times[username] = current_time
-
-    with sqlite3.connect(DB_PATH) as connection:
-        viewer = connection.execute(
-            """
-            SELECT v.id, EXISTS(
-                SELECT 1 FROM tb_members AS m WHERE m.id_viewer = v.id
-            )
-            FROM tb_viewers AS v
-            WHERE LOWER(v.username) = LOWER(?)
-            """,
-            (username,),
-        ).fetchone()
-
+    with db_connection() as conn:
+        viewer = find_viewer(conn, username)
         if viewer is None:
             return False
 
-        multiplier = MEMBER_POINT_MULTIPLIER if viewer[1] else 1.0
-        points = int(CHAT_POINT_REWARD * multiplier)
-
-        connection.execute(
-            """
-            INSERT INTO tb_stats (id_viewer, points) VALUES (?, ?)
-            ON CONFLICT(id_viewer) DO UPDATE SET points = points + excluded.points
-            """,
-            (viewer[0], points),
-        )
+        viewer_id, _, is_member = viewer
+        add_points(conn, viewer_id, int(CHAT_POINT_REWARD * member_multiplier(is_member)))
     return True
 
-def handle_daily_checkin(username):
-    today = datetime.now().strftime('%Y-%m-%d')
-    with sqlite3.connect(DB_PATH) as connection:
-        viewer = connection.execute(
-            """
-            SELECT v.id, v.last_daily_claim, EXISTS(
-                SELECT 1 FROM tb_members AS m WHERE m.id_viewer = v.id
-            )
-            FROM tb_viewers AS v
-            WHERE LOWER(v.username) = LOWER(?)
-            """,
-            (username,),
-        ).fetchone()
 
+def handle_daily_checkin(username):
+    today = datetime.now().strftime("%Y-%m-%d")
+    with db_connection() as conn:
+        viewer = find_viewer(conn, username)
         if viewer is None:
             return
 
-        viewer_id, last_claim, is_member = viewer[0], viewer[1], viewer[2]
-
+        viewer_id, last_claim, is_member = viewer
         if last_claim == today:
             return
 
-        multiplier = MEMBER_POINT_MULTIPLIER if is_member else 1.0
-        points = int(DAILY_POINT_REWARD * multiplier)
-
-        connection.execute(
+        points = int(DAILY_POINT_REWARD * member_multiplier(is_member))
+        conn.execute(
             "UPDATE tb_viewers SET last_daily_claim = ? WHERE id = ?",
-            (today, viewer_id)
+            (today, viewer_id),
         )
-        connection.execute(
-            """
-            INSERT INTO tb_stats (id_viewer, points) VALUES (?, ?)
-            ON CONFLICT(id_viewer) DO UPDATE SET points = points + excluded.points
-            """,
-            (viewer_id, points),
-        )
-        print(f"-> [DAILY CHECK-IN] @{username} mendapat {points} poin absen.")
+        add_points(conn, viewer_id, points)
+    print(f"-> [DAILY CHECK-IN] @{username} mendapat {points} poin absen.")
+
 
 def record_activity(username):
-    """Mencatat atau memperbarui waktu aktivitas terakhir penonton."""
     with viewer_lock:
         active_viewers[username] = time.time()
 
-def watch_time_background_worker():
-    """Background thread yang membagikan poin pasif secara berkala kepada penonton aktif."""
+
+def watch_time_worker():
+    """Periodically award passive points to recently active viewers."""
     while True:
         time.sleep(WATCH_TIME_INTERVAL)
-        current_time = time.time()
-        
-        with viewer_lock:
-            # Ambil salinan user yang aktif dalam batas waktu timeout
-            eligible_users = [
-                user for user, last_seen in active_viewers.items()
-                if current_time - last_seen <= ACTIVITY_TIMEOUT
-            ]
+        now = time.time()
 
-        if not eligible_users:
+        with viewer_lock:
+            eligible = [
+                user for user, last_seen in active_viewers.items()
+                if now - last_seen <= ACTIVITY_TIMEOUT
+            ]
+        if not eligible:
             continue
 
-        print(f"-> [WATCH TIME] Membagikan poin pasif ke {len(eligible_users)} penonton aktif...")
-
-        with sqlite3.connect(DB_PATH) as connection:
-            for username in eligible_users:
+        print(f"-> [WATCH TIME] Membagikan poin pasif ke {len(eligible)} penonton aktif...")
+        with db_connection() as conn:
+            for username in eligible:
                 try:
-                    viewer = connection.execute(
-                        """
-                        SELECT v.id, EXISTS(
-                            SELECT 1 FROM tb_members AS m WHERE m.id_viewer = v.id
-                        )
-                        FROM tb_viewers AS v
-                        WHERE LOWER(v.username) = LOWER(?)
-                        """,
-                        (username,),
-                    ).fetchone()
-
+                    viewer = find_viewer(conn, username)
                     if viewer:
-                        viewer_id, is_member = viewer[0], viewer[1]
-                        multiplier = MEMBER_POINT_MULTIPLIER if is_member else 1.0
-                        points = int(WATCH_TIME_REWARD * multiplier)
-
-                        connection.execute(
-                            """
-                            INSERT INTO tb_stats (id_viewer, points) VALUES (?, ?)
-                            ON CONFLICT(id_viewer) DO UPDATE SET points = points + excluded.points
-                            """,
-                            (viewer_id, points),
-                        )
-                except Exception as e:
-                    print(f"-> [WATCH TIME ERROR] Gagal memberi poin ke @{username}: {e}")
-            connection.commit()
+                        viewer_id, _, is_member = viewer
+                        add_points(conn, viewer_id,
+                                   int(WATCH_TIME_REWARD * member_multiplier(is_member)))
+                except Exception as error:
+                    print(f"-> [WATCH TIME ERROR] Gagal memberi poin ke @{username}: {error}")
         print("-> [WATCH TIME] Poin pasif berhasil dibagikan.")
 
-@sio.on("connect")
-def on_connect():
-    print("-> [POINT PROCESSOR] Connected to Flask Socket.IO server!")
-
-@sio.on("disconnect")
-def on_disconnect():
-    print("-> [POINT PROCESSOR] Disconnected from server.")
 
 @sio.on("tiktok_event")
 def handle_tiktok_event(res):
     try:
         event_type = res.get("event")
-        data = res.get("data", {})
+        data = res.get("data") or {}
         username = data.get("uniqueId") or data.get("nickname") or "User"
 
-        # Setiap ada event apa pun dari user, catat aktivitasnya untuk watch time
-        if username and username != "User":
+        if username != "User":
             record_activity(username)
 
-        # 1. Handle Gift Events[cite: 14]
         if event_type == "gift":
-            diamond_count = int(data.get("diamondCount", 0))
-            coin_value = diamond_count
-            
-            if coin_value < 5:
-                output = "small gift"
-                gift_multiplier = 1
-            elif coin_value < 20:
-                output = "medium gift"
-                gift_multiplier = 1.15
-            elif coin_value < 50:
-                output = "large gift"
-                gift_multiplier = 1.2
-            else:
-                output = "special gift"
-                gift_multiplier = 1.4
-
+            coin_value = int(data.get("diamondCount", 0))
+            label, gift_multiplier = gift_tier(coin_value)
             award_points(username, coin_value, gift_multiplier)
-            print(f"-> [POINT PROCESSOR] {username} sent a {output} ({coin_value} coins)[cite: 14]")
+            print(f"-> [POINT PROCESSOR] {username} sent a {label} ({coin_value} coins)")
 
-        # 2. Handle Chat Events
-        elif event_type in ["chat", "comment"]:
+        elif event_type in ("chat", "comment"):
             message = data.get("comment") or data.get("message") or ""
             msg_clean = message.strip().lower()
 
-            if msg_clean in ["!daily", "!absen"]:
+            if msg_clean in ("!daily", "!absen"):
                 handle_daily_checkin(username)
             elif msg_clean.startswith("!"):
-                return
-            else:
-                if len(message.strip()) >= MIN_MESSAGE_LENGTH:
-                    success = award_chat_points(username)
-                    if success:
-                        print(f"-> [CHAT POINT] @{username} mendapat poin aktif chat.")
+                pass  # other commands earn no points
+            elif len(message.strip()) >= MIN_MESSAGE_LENGTH:
+                if award_chat_points(username):
+                    print(f"-> [CHAT POINT] @{username} mendapat poin aktif chat.")
 
-        # 3. Handle Follow / Member Events (Mencatat kehadiran)
-        elif event_type in ["follow", "member"]:
+        elif event_type in ("follow", "member"):
             print(f"-> [STREAM EVENT] @{username} melakukan {event_type}.")
 
     except (TypeError, ValueError) as error:
@@ -249,23 +158,12 @@ def handle_tiktok_event(res):
     except Exception as error:
         print(f"-> [POINT PROCESSOR] Failed to process event: {error}")
 
-def run_point_inspector():
-    # Jalankan background worker untuk watch time di thread terpisah
-    watch_thread = threading.Thread(target=watch_time_background_worker, daemon=True)
-    watch_thread.start()
-    print("-> [WATCH TIME WORKER] Background thread aktif.")
 
-    while True:
-        try:
-            print("-> [POINT PROCESSOR] Connecting to Flask server on port 5000...")
-            sio.connect("http://127.0.0.1:5000", transports=["polling"])
-            sio.wait()
-        except Exception as error:
-            print(
-                f"-> [POINT PROCESSOR] Connection error: {error}. "
-                "Reconnecting in 5s..."
-            )
-            time.sleep(5)
+def run_point_inspector():
+    threading.Thread(target=watch_time_worker, daemon=True).start()
+    print("-> [WATCH TIME WORKER] Background thread aktif.")
+    run_forever(sio, LABEL)
+
 
 if __name__ == "__main__":
     run_point_inspector()
