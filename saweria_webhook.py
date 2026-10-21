@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+import json
 
 saweria_bp = Blueprint('saweria_bp', __name__)
 
@@ -17,6 +18,9 @@ def handle_saweria_webhook():
         
         if not data:
             return jsonify({"status": "error", "message": "No JSON payload found"}), 400
+
+        print("[Saweria Webhook] Full payload:")
+        print(json.dumps(data, indent=2, ensure_ascii=False))
 
         # Extract standard fields from Saweria's webhook structure
         # (Fields typically include donor name, amount, message, etc.)
