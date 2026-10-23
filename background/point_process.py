@@ -12,13 +12,13 @@ from utills.config import (
     WATCH_TIME_INTERVAL,
     WATCH_TIME_REWARD,
 )
-from utills.db_process import (
+from utills.db import (
     add_points,
     db_connection,
     find_viewer,
     member_multiplier,
 )
-from utills.socket_process import create_client, run_forever
+from utills.socket import create_client, run_forever
 
 LABEL = "POINT PROCESSOR"
 
