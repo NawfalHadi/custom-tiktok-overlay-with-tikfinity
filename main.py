@@ -12,6 +12,10 @@ from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process
 from background.point_process import run_point_inspector
 from background.streak_process import log_and_calculate_streak
+
+from routes.auth_routes import auth_bp
+from routes.dashboard_routes import dashboard_bp
+
 from controller.auth_controller import create_pending_registration, authenticate_user
 
 from listener import run_tikfinity_listener
@@ -27,7 +31,10 @@ app = Flask(__name__, template_folder='.')
 
 
 init_saweria_socket(socketio)
+
 app.register_blueprint(saweria_bp)
+app.register_blueprint(auth_bp)
+app.register_blueprint(dashboard_bp)
 
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -37,103 +44,7 @@ socketio.init_app(app)
 
 DB_PATH = str(Path('datas') / 'viewers.db')
 
-# ============== Authentication Routes ==============
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        data = request.get_json() or {}
-        email = data.get('email')
-        password = data.get('password')
 
-        if not email or not password:
-            return jsonify({"success": False, "message": "Email dan Password wajib diisi!"}), 400
-
-        # Generate 6-digit code & simpan sementara di local JSON (termasuk hash password)
-        verify_code = create_pending_registration(email, password)
-
-        # PASTIKAN verify_code dikirim ke frontend agar card-nya muncul!
-        return jsonify({
-            "success": True, 
-            "verify_code": verify_code,
-            "message": f"Silakan ketik !verify {verify_code} di TikTok Live!"
-        }), 200
-
-    return render_template('templates/auth/register.html') # Sesuaikan path foldermu
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        data = request.get_json() or {}
-        email = data.get('email')
-        password = data.get('password')
-
-        if not email or not password:
-            return jsonify({"success": False, "message": "Email dan Password wajib diisi!"}), 400
-
-        user = authenticate_user(email, password)
-
-        if user:
-            # Simpan session login
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            return jsonify({"success": True, "message": "Login Berhasil!", "redirect": "/dashboard/telling"}), 200
-        else:
-            return jsonify({"success": False, "message": "Email atau Password salah!"}), 401
-
-    return render_template('templates/auth/login.html')
-
-@app.route('/dashboard/telling')
-def get_profile():
-    if 'user_id' not in session:
-        return redirect('/login')
-    
-    user_id = session['user_id']
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT v.username, v.email, v.profile_picture_url, s.points 
-        FROM tb_viewers v
-        LEFT JOIN tb_stats s ON v.id = s.id_viewer
-        WHERE v.id = ?
-    """, (user_id,))
-    user_data = cursor.fetchone()
-    conn.close()
-
-    if not user_data:
-        session.clear()
-        return redirect('/login')
-
-    return render_template('templates/dashboard/telling.html', user=dict(user_data))
-
-@app.route('/dashboard/alerting')
-def dashboard_alerting():
-    if 'user_id' not in session:
-        return redirect('/login')
-    
-    user_id = session['user_id']
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT v.username, v.email, v.profile_picture_url, s.points 
-        FROM tb_viewers v
-        LEFT JOIN tb_stats s ON v.id = s.id_viewer
-        WHERE v.id = ?
-    """, (user_id,))
-    user_data = cursor.fetchone()
-    conn.close()
-
-    if not user_data:
-        session.clear()
-        return redirect('/login')
-
-    return render_template('templates/dashboard/alerting.html', user=dict(user_data))
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/login')
 
 # ============== Alert Routes ============
 @app.route('/api/trigger/msg-alert', methods=['POST'])

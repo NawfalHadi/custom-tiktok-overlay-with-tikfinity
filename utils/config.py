@@ -2,7 +2,7 @@ from pathlib import Path
 
 # background/helper/config.py -> project root is three levels up
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DB_PATH = BASE_DIR / "datas" / "viewers.db"
+DB_PATH = Path("datas") / "viewers.db"
 
 SERVER_URL = "http://127.0.0.1:5000"
 RECONNECT_DELAY = 5  # seconds
