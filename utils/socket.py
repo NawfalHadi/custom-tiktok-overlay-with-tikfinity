@@ -2,7 +2,7 @@ import time
 
 import socketio
 
-from utills.config import RECONNECT_DELAY, SERVER_URL
+from utils.config import RECONNECT_DELAY, SERVER_URL
 
 
 def create_client(label):

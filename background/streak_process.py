@@ -2,7 +2,7 @@ import csv
 import time
 from datetime import datetime
 
-from utills.config import BASE_DIR
+from utils.config import BASE_DIR
 
 CSV_DIR = BASE_DIR / "bin"
 CSV_PATH = CSV_DIR / "gift_streaks.csv"

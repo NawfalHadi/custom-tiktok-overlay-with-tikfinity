@@ -1,7 +1,7 @@
 import sqlite3
 from contextlib import contextmanager
 
-from utills.config import DB_PATH, MEMBER_POINT_MULTIPLIER
+from utils.config import DB_PATH, MEMBER_POINT_MULTIPLIER
 
 
 @contextmanager

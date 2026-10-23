@@ -5,6 +5,9 @@ from flask_socketio import SocketIO
 from pathlib import Path
 import sqlite3
 
+from utils.extensions import socketio
+from utils.state import upeti_state
+
 # Background Functions
 from background.gift_process import run_gift_inspector
 from background.message_process import run_message_process

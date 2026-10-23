@@ -2,7 +2,7 @@ import threading
 import time
 from datetime import datetime
 
-from utills.config import (
+from utils.config import (
     ACTIVITY_TIMEOUT,
     CHAT_POINT_REWARD,
     COIN_TO_POINT_MULTIPLIER,
@@ -12,13 +12,13 @@ from utills.config import (
     WATCH_TIME_INTERVAL,
     WATCH_TIME_REWARD,
 )
-from utills.db import (
+from utils.db import (
     add_points,
     db_connection,
     find_viewer,
     member_multiplier,
 )
-from utills.socket import create_client, run_forever
+from utils.socket import create_client, run_forever
 
 LABEL = "POINT PROCESSOR"
 

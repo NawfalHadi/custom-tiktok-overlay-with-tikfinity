@@ -1,6 +1,6 @@
-from utills.config import MEMBER_GIFT_ID
-from utills.db import create_viewer, db_connection, find_viewer
-from utills.socket import create_client, run_forever
+from utils.config import MEMBER_GIFT_ID
+from utils.db import create_viewer, db_connection, find_viewer
+from utils.socket import create_client, run_forever
 from controller.auth_controller import verify_code_from_tiktok
 
 LABEL = "MESSAGE PROCESS"
