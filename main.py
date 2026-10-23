@@ -16,6 +16,7 @@ from background.streak_process import log_and_calculate_streak
 from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.alert_routes import alert_bp
+from routes.member_routes import member_bp
 
 from controller.auth_controller import create_pending_registration, authenticate_user
 
@@ -37,6 +38,7 @@ app.register_blueprint(saweria_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(alert_bp)
+app.register_blueprint(member_bp)
 
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -46,55 +48,6 @@ socketio.init_app(app)
 
 DB_PATH = str(Path('datas') / 'viewers.db')
 
-
-@app.route('/api/members', methods=['GET'])
-def get_members():
-    search = request.args.get('search', '').strip()
-    sort_dir = request.args.get('sort', 'desc').lower()
-    filter_announced = request.args.get('announced', '') # '0', '1', or ''
-
-    # Base query joining members with viewers to get the username
-    query = '''
-        SELECT m.id, m.id_viewer, v.username, v.profile_picture_url, m.is_announced, m.created_at, m.joined_at
-        FROM tb_members m
-        JOIN tb_viewers v ON m.id_viewer = v.id
-        WHERE 1=1
-    '''
-    params = []
-
-    if search:
-        query += ' AND v.username LIKE ?'
-        params.append(f'%{search}%')
-
-    if filter_announced in ['0', '1']:
-        query += ' AND m.is_announced = ?'
-        params.append(int(filter_announced))
-
-    order = 'ASC' if sort_dir == 'asc' else 'DESC'
-    query += f' ORDER BY m.created_at {order}'
-
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-    conn.close()
-
-    members = [dict(row) for row in rows]
-    return jsonify(members)
-
-@app.route('/api/members/<int:member_id>/announce', methods=['POST'])
-def toggle_announce(member_id):
-    data = request.get_json() or {}
-    new_status = data.get('is_announced', 1)
-
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    cursor = conn.cursor()
-    cursor.execute('UPDATE tb_members SET is_announced = ? WHERE id = ?', (new_status, member_id))
-    conn.commit()
-    conn.close()
-
-    return jsonify({"success": True, "member_id": member_id, "is_announced": new_status})
 
 @app.route('/control')
 def control_panel():
