@@ -31,9 +31,9 @@ def _render_dashboard(template):
     return render_template(template, user=user)
 
 
-@dashboard_bp.route("/dashboard/telling")
+@dashboard_bp.route("/dashboard")
 def get_profile():
-    return _render_dashboard("templates/dashboard/telling.html")
+    return _render_dashboard("templates/dashboard/profiles.html")
 
 
 @dashboard_bp.route("/dashboard/alerting")

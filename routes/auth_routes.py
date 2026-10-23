@@ -39,7 +39,7 @@ def login():
         if user:
             session["user_id"] = user["id"]
             session["username"] = user["username"]
-            return jsonify({"success": True, "message": "Login Berhasil!", "redirect": "/dashboard/telling"}), 200
+            return jsonify({"success": True, "message": "Login Berhasil!", "redirect": "/dashboard"}), 200
 
         return jsonify({"success": False, "message": "Email atau Password salah!"}), 401
 
