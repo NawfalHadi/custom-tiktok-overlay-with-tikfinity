@@ -1,7 +1,6 @@
 import threading
 import logging
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
-from flask_socketio import SocketIO
 from pathlib import Path
 import sqlite3
 
@@ -25,7 +24,7 @@ from datas.init import initialize_database
 initialize_database()
 
 app = Flask(__name__, template_folder='.')
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', transports=['websocket', 'polling'])
+
 
 init_saweria_socket(socketio)
 app.register_blueprint(saweria_bp)
@@ -34,19 +33,9 @@ logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 logging.getLogger('socketio').setLevel(logging.ERROR)
 
-socketio = SocketIO(
-    app,
-    cors_allowed_origins="*",
-    async_mode='threading',
-    transports=['websocket', 'polling'],
-    logger=False,
-    engineio_logger=False
-)
+socketio.init_app(app)
 
 DB_PATH = str(Path('datas') / 'viewers.db')
-
-
-
 
 # ============== Authentication Routes ==============
 @app.route('/register', methods=['GET', 'POST'])
@@ -372,15 +361,6 @@ def ending_page():
 
 
 if __name__ == '__main__':
-
-    upeti_state = {
-        "active": True,
-        "username": "pementolan",
-        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
-        "giftName": "Galaxy",
-        "giftCount": 1,
-        "giftIconUrl": "https://img.icons8.com/color/96/gift.png"
-    }
 
     app.secret_key = 'dgcb_secret_key_sangat_aman'
 
