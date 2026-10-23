@@ -19,8 +19,7 @@ from routes.alert_routes import alert_bp
 from routes.member_routes import member_bp
 from routes.gift_routes import gift_bp
 from routes.hud_routes import hud_bp
-
-from controller.auth_controller import create_pending_registration, authenticate_user
+from routes.overlay_routes import overlay_bp
 
 from listener import run_tikfinity_listener
 
@@ -43,6 +42,7 @@ app.register_blueprint(alert_bp)
 app.register_blueprint(member_bp)
 app.register_blueprint(gift_bp)
 app.register_blueprint(hud_bp)
+app.register_blueprint(overlay_bp)
 
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -51,35 +51,6 @@ logging.getLogger('socketio').setLevel(logging.ERROR)
 socketio.init_app(app)
 
 DB_PATH = str(Path('datas') / 'viewers.db')
-
-
-@app.route('/control')
-def control_panel():
-    return render_template('templates/control.html')
-
-# ============== Overlays ==============
-
-@app.route('/comments-overlay')
-def comments_overlay():
-    return render_template('templates/comments.html')
-
-
-@app.route('/transition')
-def transition_overlay():
-    return render_template('templates/transition.html')
-
-@app.route('/upeti')
-def upeti_page():
-    return render_template('templates/upeti.html')
-
-@app.route('/kaisars')
-def kaisars_page():
-    return render_template('templates/kaisars.html')
-
-# =============== Scene Route ============
-@app.route('/ending')
-def ending_page():
-    return render_template('templates/scene/ending.html')
 
 
 if __name__ == '__main__':
