@@ -12,19 +12,69 @@
 
     <script>
         const socket = io();
+        let audioEnabled = true;
+        let audioContext;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            audioContext = new AudioContextClass();
+        }
+
+        // ---- Voice Indonesia ----
+        let indonesianVoice = null;
+
+        function loadVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            indonesianVoice = voices.find(v => v.lang.toLowerCase().startsWith('id')) || null;
+            console.log('Voice Indonesia:', indonesianVoice ? indonesianVoice.name : 'TIDAK ADA, pasang dulu di sistem');
+        }
+
+        if ('speechSynthesis' in window) {
+            loadVoice();
+            window.speechSynthesis.onvoiceschanged = loadVoice;
+        }
+
+        function playAlertSound() {
+            if (!audioEnabled || !audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const now = audioContext.currentTime;
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, now);
+            oscillator.frequency.setValueAtTime(1175, now + 0.12);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+            oscillator.start(now);
+            oscillator.stop(now + 0.36);
+        }
+
+        function speakAlert(username, message) {
+            if (!audioEnabled || !('speechSynthesis' in window)) return;
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(`${username} berkata: ${message}`);
+            utterance.lang = 'id-ID';
+            if (indonesianVoice) utterance.voice = indonesianVoice;
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+        }
 
         socket.on('message_alert', function(data) {
             const container = document.getElementById('alert-container');
             const alertEl = document.createElement('div');
             alertEl.className = 'bg-zinc-900/90 border border-zinc-700 p-4 rounded-xl shadow-2xl backdrop-blur-md transform translate-y-4 opacity-0 transition-all duration-300 flex items-center gap-3';
-            alertEl.innerHTML = `
-                <div class="bg-indigo-600 p-2.5 rounded-lg font-bold text-sm">💬</div>
-                <div>
-                    <h4 class="font-bold text-sm text-yellow-400">${data.username || 'User'}</h4>
-                    <p class="text-xs text-zinc-300">${data.message || 'Sent a message!'}</p>
-                </div>
-            `;
+            const username = data.username || 'User';
+            const message = data.message || 'Sent a message!';
+            alertEl.innerHTML = '<div class="bg-indigo-600 p-2.5 rounded-lg font-bold text-sm">💬</div><div><h4 class="font-bold text-sm text-yellow-400"></h4><p class="text-xs text-zinc-300"></p></div>';
+            alertEl.querySelector('h4').textContent = username;
+            alertEl.querySelector('p').textContent = message;
             container.appendChild(alertEl);
+
+            playAlertSound();
+            speakAlert(username, message);
 
             setTimeout(() => {
                 alertEl.classList.remove('translate-y-4', 'opacity-0');
