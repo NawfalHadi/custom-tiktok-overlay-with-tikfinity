@@ -1,8 +1,8 @@
 import requests
 
-from background.helper.config import MEMBER_GIFT_ID, SERVER_URL
-from background.helper.db_process import add_member, db_connection, find_viewer
-from background.helper.socket_process import create_client, run_forever
+from utills.config import MEMBER_GIFT_ID, SERVER_URL
+from utills.db_process import add_member, db_connection, find_viewer
+from utills.socket_process import create_client, run_forever
 
 LABEL = "GIFT PROCESSOR"
 GIFT_EVENT_URL = f"{SERVER_URL}/api/gift-event"
