@@ -17,6 +17,8 @@ from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from routes.alert_routes import alert_bp
 from routes.member_routes import member_bp
+from routes.gift_routes import gift_bp
+from routes.hud_routes import hud_bp
 
 from controller.auth_controller import create_pending_registration, authenticate_user
 
@@ -39,6 +41,8 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(alert_bp)
 app.register_blueprint(member_bp)
+app.register_blueprint(gift_bp)
+app.register_blueprint(hud_bp)
 
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -59,9 +63,6 @@ def control_panel():
 def comments_overlay():
     return render_template('templates/comments.html')
 
-@app.route('/info')
-def info_page():
-    return render_template('templates/info.html')
 
 @app.route('/transition')
 def transition_overlay():
@@ -74,86 +75,6 @@ def upeti_page():
 @app.route('/kaisars')
 def kaisars_page():
     return render_template('templates/kaisars.html')
-
-@app.route('/breaktriger', methods=['POST'])
-def break_trigger():
-    data = request.get_json() or {}
-    username = data.get('username', 'UNKNOWN')
-    avatar_url = data.get('avatarUrl', 'https://via.placeholder.com/150')
-    
-    socketio.emit('trigger_transition', {
-        'username': username,
-        'avatarUrl': avatar_url
-    })
-    return jsonify({"status": "success"}), 200
-
-# ==================== Upeti Actions & Gift Events ====================
-
-@app.route('/api/upeti/toggle', methods=['POST'])
-def toggle_upeti_state():
-    data = request.get_json() or {}
-    new_active_status = data.get("active", not upeti_state["active"])
-    
-    upeti_state["active"] = new_active_status
-
-    socketio.emit('trigger_upeti_transition', upeti_state)
-    socketio.emit('update_upeti_state', upeti_state)
-    return jsonify({"success": True, "active": upeti_state["active"]})
-
-@app.route('/api/gift-event', methods=['POST'])
-def gift_event_endpoint():
-    data = request.get_json() or {}
-    username = data.get("username", "User")
-    avatar_url = data.get("avatarUrl", "")
-    gift_name = data.get("giftName", "Gift")
-    diamond_count = int(data.get("diamondCount", 1))
-    repeat_count = int(data.get("repeatCount", 1))
-
-    # 1. Log to CSV once and calculate total streak for the 5-second window
-    total_streak = log_and_calculate_streak(username, diamond_count, repeat_count)
-    target_coins = 5  # Threshold target for Upeti transition
-
-    # 2. ALWAYS broadcast live progress bar updates to the HUD overlay
-    socketio.emit('streak_update', {
-        "username": username,
-        "avatarUrl": avatar_url,
-        "currentCoins": total_streak,
-        "targetCoins": target_coins,
-        "giftName": gift_name
-    })
-
-    # 3. ONLY trigger full Upeti transition if the 20-coin target is reached/crossed
-    if total_streak >= target_coins:
-        upeti_state["username"] = username
-        upeti_state["avatarUrl"] = avatar_url
-        upeti_state["giftName"] = gift_name
-        upeti_state["giftCount"] = total_streak
-        upeti_state["active"] = True
-
-        socketio.emit('trigger_upeti_transition', upeti_state)
-        socketio.emit('update_upeti_state', upeti_state)
-
-    return jsonify({"status": "success", "total_streak": total_streak}), 200
-
-@app.route('/upeti-transition')
-def upeti_transition_page():
-    return render_template('templates/upeti-transition.html')
-
-# =============== Controls Route ============
-@app.route('/fake-api-panel')
-def fake_api_panel():
-    return render_template('templates/controls/api-panel.html')
-
-@app.route('/api/fake-trigger', methods=['POST'])
-def fake_trigger():
-    payload = request.get_json() or {}
-    socketio.emit('tiktok_event', payload)
-    return jsonify({"status": "success", "event": payload.get("event")}), 200
-
-# ============= HUD Route ============
-@app.route('/gift-hud')
-def gift_hud_page():
-    return render_template('templates/hud/gift-hud.html')
 
 # =============== Scene Route ============
 @app.route('/ending')
