@@ -10,4 +10,4 @@ def gift_hud_page():
 @hud_bp.route("/info")
 def info_page():
     """Join notification HUD."""
-    return render_template("templates/info.html")
+    return render_template("templates/hud/join-hud.html")

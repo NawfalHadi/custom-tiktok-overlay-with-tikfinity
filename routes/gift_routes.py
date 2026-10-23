@@ -76,7 +76,3 @@ def fake_trigger():
 def fake_api_panel():
     return render_template("templates/controls/api-panel.html")
 
-
-@gift_bp.route("/upeti-transition")
-def upeti_transition_page():
-    return render_template("templates/upeti-transition.html")
