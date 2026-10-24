@@ -1,145 +1,487 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compact Gift Lifebar HUD</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:ital,wght@0,500;0,700;0,900;1,900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Oswald', sans-serif;
-            background: transparent;
-            overflow: hidden;
-        }
-        /* Slanted polygon shapes */
-        .skew-bar {
-            clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
-        }
-        .skew-box {
-            clip-path: polygon(0 0, 82% 0, 100% 100%, 0% 100%);
-        }
-        .name-tag {
-            clip-path: polygon(6% 0, 100% 0, 94% 100%, 0% 100%);
-        }
-        .glow-cyan {
-            text-shadow: 0 0 8px rgba(6, 182, 212, 0.7);
-        }
-        .glow-gold {
-            text-shadow: 0 0 8px rgba(234, 179, 8, 0.7);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gift HUD - Multi-Stack Circle HUD (OBS Overlay)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #07070a;
+    --bone: #f4f2ea;
+    --acid: #e6ff1a;
+    --red: #ff2d3d;
+    --cyan: #7fe9ff;
+    --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+
+  html, body {
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+    color: var(--bone);
+    pointer-events: none; /* Let clicks pass through for OBS */
+  }
+
+  /* ---------- Viewport Container for Multiple Stacks ---------- */
+  #viewport {
+    position: fixed;
+    bottom: 32px;
+    left: 32px;
+    display: flex;
+    flex-direction: column-reverse; /* New ones stack upwards */
+    gap: 16px;
+    align-items: flex-start;
+    z-index: 100;
+  }
+
+  /* ---------- HUD Instance ---------- */
+  .hud {
+    position: relative;
+    width: 320px;
+    aspect-ratio: 1 / 1;
+    transition: transform .4s cubic-bezier(.2, .8, .2, 1), opacity .4s ease;
+    animation: hud-in 0.4s cubic-bezier(.2, .8, .2, 1) forwards;
+  }
+
+  @keyframes hud-in {
+    from { opacity: 0; transform: translateY(30px) scale(0.85); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .hud.fade-out {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  .hud.shake { animation: shake .45s cubic-bezier(.36, .07, .19, .97); }
+  @keyframes shake {
+    10%, 90%  { transform: translate(-1px, 0); }
+    20%, 80%  { transform: translate(3px, -1px); }
+    30%, 50%, 70% { transform: translate(-5px, 1px); }
+    40%, 60%  { transform: translate(5px, -1px); }
+  }
+
+  /* Dark core behind the portrait */
+  .core {
+    position: absolute;
+    inset: 16%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 38%, #20202b 0%, #0b0b11 60%, #060609 100%);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, .85);
+  }
+
+  /* ---------- Ring ---------- */
+  .ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 0 10px rgba(230, 255, 26, .32));
+    transition: filter .5s ease;
+  }
+  .hud.complete .ring {
+    filter: drop-shadow(0 0 14px rgba(255, 45, 61, .6));
+  }
+
+  .tick { stroke: rgba(255, 255, 255, .2); stroke-width: 1.4; }
+  .tick.major { stroke: rgba(230, 255, 26, .7); stroke-width: 2; }
+
+  .track {
+    fill: none;
+    stroke: rgba(255, 255, 255, .08);
+    stroke-width: 18;
+  }
+  .prog {
+    fill: none;
+    stroke: url(#gProg);
+    stroke-width: 18;
+    transition: stroke-dashoffset .5s cubic-bezier(.2, .8, .2, 1);
+  }
+  .hud.complete .prog { stroke: var(--red); }
+  .prog.hit { animation: hit .5s ease-out; }
+  @keyframes hit {
+    0%   { filter: brightness(2.2); }
+    100% { filter: brightness(1); }
+  }
+
+  /* Glowing leading tip, rotated around the ring */
+  .tip {
+    transform-box: view-box;
+    transform-origin: 150px 150px;
+    transition: transform .5s cubic-bezier(.2, .8, .2, 1), opacity .3s ease;
+  }
+  .tip-halo-outer { fill: rgba(230, 255, 26, .2); }
+  .tip-halo-inner { fill: rgba(230, 255, 26, .5); }
+  .tip-core { fill: #fff; }
+  .hud.empty .tip,
+  .hud.complete .tip { opacity: 0; }
+
+  /* ---------- Portrait ---------- */
+  .frame {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 176px;
+    height: 176px;
+    transform: translate(-50%, -50%);
+    padding: 4px;
+    clip-path: var(--oct);
+    background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 40%, #1c1c24 60%, var(--acid) 100%);
+    transition: background .4s ease;
+  }
+  .hud.complete .frame {
+    background: linear-gradient(135deg, #ffffff 0%, var(--red) 50%, #ffffff 100%);
+  }
+  .avatar {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0b0b10;
+    clip-path: var(--oct);
+  }
+  .avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.08) saturate(1.1);
+  }
+  .avatar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 55%, rgba(0, 0, 0, .6));
+  }
+  .avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .18) 48%, transparent 58%);
+  }
+
+  /* ---------- Tags ---------- */
+  .tag {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding: 0 28px;
+    font-size: 24px;
+    font-weight: 900;
+    font-style: italic;
+    line-height: 1;
+    white-space: nowrap;
+    clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+  }
+
+  .tag-top {
+    top: 0;
+    min-width: 136px;
+    background: var(--acid);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    transition: background .35s ease, color .35s ease;
+  }
+  .hud.complete .tag-top {
+    background: var(--red);
+    color: #fff;
+  }
+  .count-wrap {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    transition: transform .18s ease;
+  }
+  .count-wrap .sep { opacity: .45; }
+  .count-wrap.bump { transform: scale(1.12); }
+  .ko {
+    font-size: 26px;
+    letter-spacing: .06em;
+  }
+
+  .plate {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    height: 30px;
+    max-width: 88%;
+    padding: 0 30px;
+    background: #0c0c12;
+    color: var(--bone);
+    font-size: 16px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+    box-shadow: inset 4px 0 0 var(--acid);
+  }
+  .name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---------- Floating +N ---------- */
+  .pops {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .pop {
+    position: absolute;
+    font-size: 34px;
+    font-weight: 900;
+    font-style: italic;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 0 0 12px rgba(230, 255, 26, .9), 0 3px 0 #000;
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+    animation: pop-out .9s ease-out forwards;
+  }
+  @keyframes pop-out {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+    15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, calc(-50% - 16px)) scale(1); }
+  }
+</style>
 </head>
-<body class="w-screen h-screen p-6 flex flex-col justify-end items-start">
+<body>
 
-    <!-- Container for active player lifebars -->
-    <div id="hud-container" class="flex flex-col space-y-4 max-w-sm w-full">
-        <!-- Dynamic lifebars injected here -->
-    </div>
+  <!-- Viewport container where multiple active gift circles stack up -->
+  <div id="viewport"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-    <script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+  (() => {
+    const viewport = document.getElementById('viewport');
+    const RADIUS = 112;
+    const CIRC = 2 * Math.PI * RADIUS;
+    const SEGMENTS = 48;
+    const GAP_PX = 3;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Active gift HUD instances tracked by username
+    const activeInstances = {};
+
+    const PLACEHOLDER_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+      '<rect width="100" height="100" fill="#111119"/>' +
+      '<text x="50" y="50" dy=".35em" font-family="Arial,sans-serif" font-weight="900" ' +
+      'font-size="52" text-anchor="middle" fill="#e6ff1a">?</text>' +
+      '</svg>'
+    );
+
+    function createHudElement(username, avatarUrl, targetCoins) {
+      const hud = document.createElement('div');
+      hud.className = 'hud';
+      hud.setAttribute('role', 'progressbar');
+      hud.setAttribute('aria-label', 'Coin goal');
+
+      hud.innerHTML = `
+        <div class="core"></div>
+        <svg class="ring" viewBox="0 0 300 300" aria-hidden="true">
+          <defs>
+            <linearGradient id="gProg-${username.replace(/[^a-zA-Z0-9]/g, '_')}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f6ffb0"/>
+              <stop offset="0.45" stop-color="#e6ff1a"/>
+              <stop offset="1" stop-color="#ff4a2a"/>
+            </linearGradient>
+            <mask id="seg-${username.replace(/[^a-zA-Z0-9]/g, '_')}" maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="300">
+              <rect width="300" height="300" fill="#fff"/>
+              <circle class="segGap" cx="150" cy="150" r="112" fill="none" stroke="#000" stroke-width="26"/>
+            </mask>
+          </defs>
+          <g class="ticks"></g>
+          <g mask="url(#seg-${username.replace(/[^a-zA-Z0-9]/g, '_')})">
+            <g transform="rotate(-90 150 150)">
+              <circle class="track" cx="150" cy="150" r="112"/>
+              <circle class="prog" cx="150" cy="150" r="112" style="stroke: url(#gProg-${username.replace(/[^a-zA-Z0-9]/g, '_')});"/>
+            </g>
+          </g>
+          <g class="tip">
+            <circle class="tip-halo-outer" cx="150" cy="38" r="16"/>
+            <circle class="tip-halo-inner" cx="150" cy="38" r="9"/>
+            <circle class="tip-core" cx="150" cy="38" r="4.5"/>
+          </g>
+        </svg>
+        <div class="frame">
+          <div class="avatar">
+            <img class="avatar-img" alt="Avatar" src="${avatarUrl || PLACEHOLDER_AVATAR}">
+          </div>
+        </div>
+        <div class="tag tag-top">
+          <span class="count-wrap"><span class="cur">0</span><span class="sep">/</span><span class="max">${targetCoins}</span></span>
+          <span class="ko" hidden>GOAL!</span>
+        </div>
+        <div class="plate"><span class="name">@${username}</span></div>
+        <div class="pops"></div>
+      `;
+
+      // Setup segment gaps & ticks
+      const segGap = hud.querySelector('.segGap');
+      const segLen = CIRC / SEGMENTS;
+      segGap.setAttribute('stroke-dasharray', `${GAP_PX} ${(segLen - GAP_PX).toFixed(3)}`);
+
+      const prog = hud.querySelector('.prog');
+      prog.setAttribute('stroke-dasharray', CIRC.toFixed(3));
+      prog.style.strokeDashoffset = CIRC.toFixed(3);
+
+      const ticksEl = hud.querySelector('.ticks');
+      for (let i = 0; i < 60; i++) {
+        const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
+        const major = i % 5 === 0;
+        const r1 = major ? 128 : 130;
+        const r2 = major ? 136 : 134;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', (150 + r1 * Math.cos(a)).toFixed(2));
+        line.setAttribute('y1', (150 + r1 * Math.sin(a)).toFixed(2));
+        line.setAttribute('x2', (150 + r2 * Math.cos(a)).toFixed(2));
+        line.setAttribute('y2', (150 + r2 * Math.sin(a)).toFixed(2));
+        line.setAttribute('class', major ? 'tick major' : 'tick');
+        ticksEl.appendChild(line);
+      }
+
+      const img = hud.querySelector('.avatar-img');
+      img.addEventListener('error', () => {
+        if (img.src !== PLACEHOLDER_AVATAR) img.src = PLACEHOLDER_AVATAR;
+      });
+
+      return hud;
+    }
+
+    function updateHudInstance(instance, current, target) {
+      const { hud, progEl, tipEl, curEl, maxEl, countWrap, koEl, popsEl } = instance;
+      const shownCoins = instance.currentCoins;
+      instance.currentCoins = Math.max(0, Math.min(current, target));
+      instance.targetCoins = target;
+
+      const cur = instance.currentCoins;
+      const pct = (cur / target) * 100;
+      const gained = cur - shownCoins;
+      const done = cur >= target;
+      const wasDone = hud.classList.contains('complete');
+
+      progEl.style.strokeDashoffset = (CIRC * (1 - pct / 100)).toFixed(3);
+      tipEl.style.transform = `rotate(${(pct * 3.6).toFixed(2)}deg)`;
+
+      hud.classList.toggle('empty', cur === 0);
+      hud.classList.toggle('complete', done);
+      maxEl.textContent = target;
+      koEl.hidden = !done;
+      countWrap.hidden = done;
+      curEl.textContent = cur;
+
+      if (!reduceMotion) {
+        if (done && !wasDone) {
+          hud.classList.remove('shake');
+          void hud.offsetWidth;
+          hud.classList.add('shake');
+        }
+        if (gained > 0) {
+          progEl.classList.remove('hit');
+          void progEl.getBoundingClientRect();
+          progEl.classList.add('hit');
+
+          // Spawn floating +N
+          const a = (pct * 3.6) * Math.PI / 180;
+          const r = 45;
+          const pop = document.createElement('span');
+          pop.className = 'pop';
+          pop.textContent = `+${gained}`;
+          pop.style.left = `${50 + r * Math.sin(a)}%`;
+          pop.style.top = `${50 - r * Math.cos(a)}%`;
+          pop.addEventListener('animationend', () => pop.remove());
+          popsEl.appendChild(pop);
+        }
+      }
+
+      // Bump count animation
+      countWrap.classList.add('bump');
+      clearTimeout(instance.bumpTimer);
+      instance.bumpTimer = setTimeout(() => countWrap.classList.remove('bump'), 180);
+
+      // Reset inactivity auto-dismiss timer (5 seconds)
+      clearTimeout(instance.dismissTimer);
+      instance.dismissTimer = setTimeout(() => removeHudInstance(instance.username), 5000);
+    }
+
+    function removeHudInstance(username) {
+      if (!activeInstances[username]) return;
+      const instance = activeInstances[username];
+      clearTimeout(instance.dismissTimer);
+      instance.hud.classList.add('fade-out');
+      setTimeout(() => {
+        instance.hud.remove();
+        delete activeInstances[username];
+      }, 400);
+    }
+
+    function handleStreakEvent(data) {
+      const username = (data && data.username) ? data.username : 'viewer';
+      const avatarUrl = (data && data.avatarUrl) ? data.avatarUrl : '';
+      const target = (data && Number.isFinite(data.targetCoins) && data.targetCoins > 0) ? data.targetCoins : 20;
+      const current = (data && Number.isFinite(data.currentCoins)) ? data.currentCoins : 1;
+
+      if (activeInstances[username]) {
+        updateHudInstance(activeInstances[username], current, target);
+      } else {
+        const hud = createHudElement(username, avatarUrl, target);
+        viewport.appendChild(hud);
+
+        const instance = {
+          username,
+          hud,
+          progEl: hud.querySelector('.prog'),
+          tipEl: hud.querySelector('.tip'),
+          curEl: hud.querySelector('.cur'),
+          maxEl: hud.querySelector('.max'),
+          countWrap: hud.querySelector('.count-wrap'),
+          koEl: hud.querySelector('.ko'),
+          popsEl: hud.querySelector('.pops'),
+          currentCoins: 0,
+          targetCoins: target,
+          dismissTimer: null,
+          bumpTimer: null
+        };
+
+        activeInstances[username] = instance;
+        updateHudInstance(instance, current, target);
+      }
+    }
+
+    /* ===== Live Socket Listener ===== */
+    if (typeof io === 'function') {
+      try {
         const socket = io({ transports: ['polling'] });
-        const container = document.getElementById('hud-container');
-        
-        // Track active lifebars by username: { username: { element, fillEl, countEl, timer } }
-        const activeBars = {};
-
         socket.on('streak_update', (data) => {
-            const username = data.username || "User";
-            const avatarUrl = data.avatarUrl || "https://via.placeholder.com/150";
-            const current = data.currentCoins || 1;
-            const target = data.targetCoins || 20;
-            
-            updateOrCreateLifebar(username, avatarUrl, current, target);
+          handleStreakEvent(data);
         });
-
-        function updateOrCreateLifebar(username, avatarUrl, current, target) {
-            let percentage = Math.min(Math.round((current / target) * 100), 100);
-
-            if (activeBars[username]) {
-                // Update existing lifebar
-                const barData = activeBars[username];
-                barData.countEl.innerText = current;
-                barData.fillEl.style.width = `${percentage}%`;
-
-                // Reset the 5-second inactivity timeout
-                clearTimeout(barData.timer);
-                barData.timer = setTimeout(() => removeLifebar(username), 5000);
-
-                // Quick visual pulse effect
-                barData.element.classList.add('scale-105');
-                setTimeout(() => barData.element.classList.remove('scale-105'), 200);
-
-            } else {
-                // Create brand new compact Lifebar row
-                const card = document.createElement('div');
-                card.className = "flex flex-col space-y-0.5 transform translate-x-[-120%] opacity-0 transition-all duration-300 ease-out w-[340px]";
-                
-                card.innerHTML = `
-                    <div class="flex items-center relative">
-                        
-                        <!-- 1. User Profile Picture Container -->
-                        <div class="relative z-30 w-10 h-10 bg-zinc-950 border border-cyan-400 rounded-lg overflow-hidden shadow-lg shrink-0 -mr-2 flex items-center justify-center">
-                            <img src="${avatarUrl}" alt="Avatar" class="w-full h-full object-cover">
-                        </div>
-
-                        <!-- 2. Left Gold Counter Box -->
-                        <div class="relative z-20 w-20 h-9 bg-gradient-to-r from-yellow-400 to-amber-500 skew-box flex flex-col justify-center items-center pl-3 pr-2 shadow-md">
-                            <span class="text-base font-black italic tracking-tighter text-black leading-none glow-gold count-val">${current}</span>
-                            <span class="text-[7px] font-black tracking-widest text-zinc-900 uppercase">COINS</span>
-                        </div>
-
-                        <!-- 3. Main Sci-Fi Slanted Progress Bar Track -->
-                        <div class="relative -ml-2.5 flex-1 h-9 bg-zinc-950/95 border border-cyan-400/80 skew-bar overflow-hidden shadow-lg">
-                            <!-- Absolute Fixed Percentage Fill -->
-                            <div class="progress-fill absolute left-0 top-0 bottom-0 bg-gradient-to-r from-cyan-400 via-blue-600 to-emerald-400 transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.7)]" 
-                                 style="width: ${percentage}%;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Bottom Details: Player Tag & Level -->
-                    <div class="flex items-center justify-between pl-20 pr-2">
-                        <!-- Player Name Tag -->
-                        <div class="bg-zinc-900/90 border border-cyan-400/40 px-4 py-0.5 name-tag shadow-sm">
-                            <span class="text-[10px] font-black italic tracking-wider text-cyan-300 glow-cyan uppercase">@${username}</span>
-                        </div>
-                        <!-- Level Indicator -->
-                        <div class="text-[9px] font-black tracking-widest text-yellow-400 glow-gold">
-                            LVL ${Math.floor(current / 5) + 1}
-                        </div>
-                    </div>
-                `;
-
-                container.appendChild(card);
-
-                // Smooth slide-in entrance
-                setTimeout(() => card.classList.remove('translate-x-[-120%]', 'opacity-0'), 50);
-
-                // 5-second auto-dismiss timeout
-                const timer = setTimeout(() => removeLifebar(username), 5000);
-
-                activeBars[username] = {
-                    element: card,
-                    fillEl: card.querySelector('.progress-fill'),
-                    countEl: card.querySelector('.count-val'),
-                    timer: timer
-                };
-            }
-        }
-
-        function removeLifebar(username) {
-            if (activeBars[username]) {
-                const card = activeBars[username].element;
-                card.classList.add('translate-x-[-120%]', 'opacity-0');
-                setTimeout(() => {
-                    card.remove();
-                    delete activeBars[username];
-                }, 300);
-            }
-        }
-    </script>
+      } catch (err) {
+        console.warn('Socket unavailable.', err);
+      }
+    }
+  })();
+  </script>
 </body>
 </html>
