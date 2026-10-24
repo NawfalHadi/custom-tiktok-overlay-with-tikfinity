@@ -1,90 +1,466 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Message Alert Overlay</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Alert HUD Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #07070a;
+    --bone: #f4f2ea;
+    --acid: #e6ff1a;
+    --red: #ff2d3d;
+    --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+    --card-cut: polygon(0 0, 92% 0, 100% 20%, 100% 100%, 10% 100%, 0 80%);
+    --badge-cut: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+    color: var(--bone);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 32px;
+    pointer-events: none;
+  }
+
+  /* ---------- Alert Container ---------- */
+  .alert-container {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 12px;
+    width: min(380px, 90vw);
+    max-height: 80vh;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* ---------- Message Alert Card ---------- */
+  .alert-card {
+    position: relative;
+    width: 100%;
+    background: rgba(11, 11, 16, 0.94);
+    border: 2px solid var(--acid);
+    clip-path: var(--card-cut);
+    padding: 14px 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: auto;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85), inset 0 0 20px rgba(230, 255, 26, 0.08);
+    backdrop-filter: blur(8px);
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
+    animation: alertSlamIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  }
+
+  .alert-card.removing {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.92);
+  }
+
+  @keyframes alertSlamIn {
+    0% {
+      opacity: 0;
+      transform: translateX(-50px) scale(0.85);
+      filter: blur(6px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  /* Scanline texture overlay */
+  .alert-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.22),
+      rgba(0, 0, 0, 0.22) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Left Accent Ribbon */
+  .alert-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: var(--acid);
+    box-shadow: 0 0 10px var(--acid);
+  }
+
+  /* ---------- Header Section ---------- */
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+  }
+
+  .tag-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 12px;
+    background: var(--acid);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    clip-path: var(--badge-cut);
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 800;
+    font-style: italic;
+    color: var(--acid);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--acid);
+    box-shadow: 0 0 6px var(--acid);
+    animation: blink 0.8s ease-in-out infinite alternate;
+  }
+
+  @keyframes blink {
+    0% { opacity: 0.2; }
+    100% { opacity: 1; }
+  }
+
+  /* ---------- Body Section ---------- */
+  .card-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    z-index: 2;
+    margin-top: 2px;
+  }
+
+  /* Octagonal Avatar Frame */
+  .frame {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    padding: 2px;
+    clip-path: var(--oct);
+    background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 40%, #1c1c24 60%, var(--acid) 100%);
+  }
+
+  .avatar {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0b0b10;
+    clip-path: var(--oct);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.08) saturate(1.1);
+  }
+
+  .avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.2) 48%, transparent 58%);
+  }
+
+  /* Content Block */
+  .details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .username {
+    font-size: 20px;
+    font-weight: 900;
+    font-style: italic;
+    color: var(--bone);
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  .message-text {
+    font-size: 16px;
+    font-weight: 800;
+    font-style: italic;
+    color: #ffffff;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    margin-top: 4px;
+    word-break: break-word;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+    padding-top: 4px;
+  }
+
+  /* ---------- Progress Timer Bar ---------- */
+  .timer-track {
+    position: relative;
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-top: 4px;
+    overflow: hidden;
+    z-index: 2;
+  }
+
+  .timer-fill {
+    height: 100%;
+    background: var(--acid);
+    box-shadow: 0 0 8px var(--acid);
+    width: 100%;
+    transform-origin: left center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .alert-card { animation: none; transition: none; }
+    .timer-fill { display: none; }
+  }
+</style>
 </head>
-<body class="bg-transparent text-white overflow-hidden p-6">
-    <div id="alert-container" class="flex flex-col gap-3 max-w-sm"></div>
+<body>
 
-    <script>
-        const socket = io();
-        let audioEnabled = true;
-        let audioContext;
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-            audioContext = new AudioContextClass();
+  <!-- Alert Container (No manual triggers; ready for API & socket automation) -->
+  <div class="alert-container" id="alert-container" role="log" aria-live="polite"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+  (() => {
+    /* ===== Configuration & Settings ===== */
+    const CONFIG = {
+      displayDurationMs: 6000,
+      maxAlerts: 4
+    };
+
+    const PLACEHOLDER_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#7c3aed"/>' +
+      '</linearGradient></defs>' +
+      '<rect width="100" height="100" fill="url(#g)"/>' +
+      '<circle cx="50" cy="40" r="18" fill="#c7d2fe"/>' +
+      '<path d="M18 100c4-22 17-32 32-32s28 10 32 32z" fill="#c7d2fe"/>' +
+      '</svg>'
+    );
+
+    let audioEnabled = true;
+    let ttsEnabled = true;
+    let audioContext = null;
+    let indonesianVoice = null;
+
+    const container = document.getElementById('alert-container');
+
+    /* ===== Audio Synthesizer ===== */
+    function initAudioContext() {
+      if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) audioContext = new AudioCtx();
+      }
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
+
+    function playAlertSound() {
+      if (!audioEnabled) return;
+      initAudioContext();
+      if (!audioContext) return;
+
+      try {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1175, now + 0.12);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.36);
+      } catch (err) {
+        console.warn('Audio play error:', err);
+      }
+    }
+
+    /* ===== Advanced Indonesian TTS Voice Matching ===== */
+    function loadIndonesianVoice() {
+      if (!('speechSynthesis' in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      // Look specifically for high-quality Indonesian voices (e.g. Google Bahasa Indonesia or Microsoft Damar)
+      indonesianVoice = voices.find(v => v.lang.toLowerCase().includes('id') || v.lang.toLowerCase().includes('ind'));
+    }
+
+    if ('speechSynthesis' in window) {
+      loadIndonesianVoice();
+      window.speechSynthesis.onvoiceschanged = loadIndonesianVoice;
+    }
+
+    function speakAlert(username, message) {
+      if (!ttsEnabled || !('speechSynthesis' in window)) return;
+
+      try {
+        window.speechSynthesis.cancel();
+        
+        // Formulate clean utterance with the robust voice engine
+        const textToSpeech = `${username} berkata: ${message}`;
+        const utterance = new SpeechSynthesisUtterance(textToSpeech);
+        
+        utterance.lang = 'id-ID';
+        if (indonesianVoice) {
+          utterance.voice = indonesianVoice;
         }
+        
+        // Tuned rate & pitch for clear, natural speech synthesis delivery
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn('TTS error:', err);
+      }
+    }
 
-        // ---- Voice Indonesia ----
-        let indonesianVoice = null;
+    /* ===== Spawn Message Alert HUD ===== */
+    function spawnMessageAlert(username, message, avatarUrl) {
+      initAudioContext();
+      const uname = username || 'VIEWER';
+      const text = message || 'Sent a message!';
+      const avatar = avatarUrl || PLACEHOLDER_AVATAR;
 
-        function loadVoice() {
-            const voices = window.speechSynthesis.getVoices();
-            indonesianVoice = voices.find(v => v.lang.toLowerCase().startsWith('id')) || null;
-            console.log('Voice Indonesia:', indonesianVoice ? indonesianVoice.name : 'TIDAK ADA, pasang dulu di sistem');
-        }
+      // Limit max alerts visible simultaneously
+      while (container.children.length >= CONFIG.maxAlerts) {
+        const oldest = container.firstElementChild;
+        if (oldest) oldest.remove();
+      }
 
-        if ('speechSynthesis' in window) {
-            loadVoice();
-            window.speechSynthesis.onvoiceschanged = loadVoice;
-        }
+      const card = document.createElement('div');
+      card.className = 'alert-card';
 
-        function playAlertSound() {
-            if (!audioEnabled || !audioContext) return;
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="tag-top">💬 CHAT ALERT</span>
+          <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+        </div>
+        <div class="card-body">
+          <div class="frame">
+            <div class="avatar">
+              <img src="${avatar}" alt="" onerror="this.src='${PLACEHOLDER_AVATAR}'">
+            </div>
+          </div>
+          <div class="details">
+            <span class="username">@${uname}</span>
+            <p class="message-text">${escapeHtml(text)}</p>
+          </div>
+        </div>
+        <div class="timer-track">
+          <div class="timer-fill" id="timer-fill"></div>
+        </div>
+      `;
 
-            const oscillator = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            const now = audioContext.currentTime;
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, now);
-            oscillator.frequency.setValueAtTime(1175, now + 0.12);
-            gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-            oscillator.connect(gain);
-            gain.connect(audioContext.destination);
-            oscillator.start(now);
-            oscillator.stop(now + 0.36);
-        }
+      container.appendChild(card);
 
-        function speakAlert(username, message) {
-            if (!audioEnabled || !('speechSynthesis' in window)) return;
+      playAlertSound();
+      speakAlert(uname, text);
 
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(`${username} berkata: ${message}`);
-            utterance.lang = 'id-ID';
-            if (indonesianVoice) utterance.voice = indonesianVoice;
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
-        }
-
-        socket.on('message_alert', function(data) {
-            const container = document.getElementById('alert-container');
-            const alertEl = document.createElement('div');
-            alertEl.className = 'bg-zinc-900/90 border border-zinc-700 p-4 rounded-xl shadow-2xl backdrop-blur-md transform translate-y-4 opacity-0 transition-all duration-300 flex items-center gap-3';
-            const username = data.username || 'User';
-            const message = data.message || 'Sent a message!';
-            alertEl.innerHTML = '<div class="bg-indigo-600 p-2.5 rounded-lg font-bold text-sm">💬</div><div><h4 class="font-bold text-sm text-yellow-400"></h4><p class="text-xs text-zinc-300"></p></div>';
-            alertEl.querySelector('h4').textContent = username;
-            alertEl.querySelector('p').textContent = message;
-            container.appendChild(alertEl);
-
-            playAlertSound();
-            speakAlert(username, message);
-
-            setTimeout(() => {
-                alertEl.classList.remove('translate-y-4', 'opacity-0');
-            }, 10);
-
-            setTimeout(() => {
-                alertEl.classList.add('translate-y-4', 'opacity-0');
-                setTimeout(() => alertEl.remove(), 300);
-            }, 5000);
+      // Animate progress timer fill
+      const timerFill = card.querySelector('#timer-fill');
+      if (timerFill && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        timerFill.style.transition = `transform ${CONFIG.displayDurationMs}ms linear`;
+        requestAnimationFrame(() => {
+          timerFill.style.transform = 'scaleX(0)';
         });
-    </script>
+      }
+
+      // Auto dismiss timeout
+      setTimeout(() => {
+        card.classList.add('removing');
+        setTimeout(() => card.remove(), 350);
+      }, CONFIG.displayDurationMs);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, (m) => {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    /* ===== Live Backend Socket Listener ===== */
+    if (typeof io === 'function') {
+      try {
+        const socket = io({ transports: ['polling'] });
+        socket.on('message_alert', (data) => {
+          const d = data || {};
+          const uname = d.username || d.nickname || 'VIEWER';
+          const msg = d.message || d.comment || 'Sent a message!';
+          const avatar = d.avatarUrl || d.profilePictureUrl || '';
+          spawnMessageAlert(uname, msg, avatar);
+        });
+      } catch (err) {
+        console.warn('Live socket unavailable.', err);
+      }
+    }
+  })();
+  </script>
 </body>
 </html>
