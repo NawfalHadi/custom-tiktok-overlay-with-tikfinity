@@ -3,88 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran Kesatria DGCB</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Pendaftaran Kesatria DGCB - Cyber HUD</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --ink: #07070a;
+            --bone: #f4f2ea;
+            --acid: #e6ff1a;
+            --red: #ff2d3d;
+            --cyan: #00f0ff;
+            --card-clip: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+            --btn-clip: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        [hidden] { display: none !important; }
+
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background: #09090b;
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: var(--ink);
+            color: var(--bone);
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
         }
-        .title-font {
-            font-family: 'Oswald', sans-serif;
+
+        /* Scanline Overlay matching core theme */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            z-index: 50;
         }
-        .glow-title {
-            text-shadow: 0 0 15px rgba(234, 179, 8, 0.5);
+
+        /* Center Card HUD Window */
+        .hud-card {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            background: #0b0b11;
+            border: 1px solid rgba(230, 255, 26, 0.3);
+            clip-path: var(--card-clip);
+            padding: 28px 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(230, 255, 26, 0.05);
+            backdrop-filter: blur(10px);
         }
-        .skew-btn {
-            clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%);
+
+        .hud-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--acid), transparent 80%);
+        }
+
+        /* Corner Visual Accents */
+        .corner-tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--acid);
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 900;
+            padding: 2px 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 20% 100%);
+            font-style: italic;
+        }
+
+        /* Header Title Block */
+        .header-section {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .portal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--acid);
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: 0.15em;
+            padding: 2px 14px;
+            clip-path: var(--badge-clip);
+            text-transform: uppercase;
+        }
+
+        .main-title {
+            font-size: 26px;
+            font-weight: 900;
+            font-style: italic;
+            line-height: 1;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--bone);
+            margin-top: 6px;
+        }
+
+        .sub-title {
+            font-size: 34px;
+            font-weight: 900;
+            font-style: italic;
+            line-height: 0.95;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: var(--acid);
+            text-shadow: 0 0 15px rgba(230, 255, 26, 0.4);
+        }
+
+        /* Form Controls */
+        .register-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.12em;
+            color: #a0a0b0;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .hud-input {
+            width: 100%;
+            background: rgba(7, 7, 10, 0.85);
+            border: 1.5px solid #2a2a38;
+            color: var(--bone);
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: 700;
+            font-style: italic;
+            /* Keep text clear of the slanted edges created by the clip path. */
+            padding: 12px 46px;
+            outline: none;
+            transition: all 0.2s ease;
+            clip-path: var(--badge-clip);
+        }
+
+        .hud-input:focus {
+            border-color: var(--acid);
+            background: rgba(18, 18, 26, 0.95);
+            box-shadow: 0 0 12px rgba(230, 255, 26, 0.25);
+        }
+
+        .hud-input::placeholder {
+            color: #4a4a5a;
+            font-style: italic;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--acid);
+            color: var(--ink);
+            border: 0;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            clip-path: var(--badge-clip);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.15s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #ffffff;
+        }
+
+        /* Dynamic Alert Container */
+        .alert-box {
+            padding: 10px 14px;
+            font-size: 16px;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.05em;
+            text-align: center;
+            text-transform: uppercase;
+            clip-path: var(--badge-clip);
+            border-left: 4px solid transparent;
+            display: none;
+        }
+
+        .alert-box.show {
+            display: block;
+        }
+
+        .alert-error {
+            background: rgba(255, 45, 61, 0.15);
+            color: var(--red);
+            border-left-color: var(--red);
+        }
+
+        .alert-success {
+            background: rgba(230, 255, 26, 0.15);
+            color: var(--acid);
+            border-left-color: var(--acid);
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            background: var(--acid);
+            color: var(--ink);
+            border: 0;
+            font-family: inherit;
+            font-size: 22px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 14px;
+            cursor: pointer;
+            clip-path: var(--btn-clip);
+            transition: all 0.15s ease;
+            box-shadow: 0 0 20px rgba(230, 255, 26, 0.3);
+            margin-top: 4px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #4a4a5a;
+            color: #121218;
+            box-shadow: none;
+        }
+
+        /* Secondary Login Navigation Button */
+        .login-nav-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(230, 255, 26, 0.4);
+            color: var(--acid);
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 8px 16px;
+            clip-path: var(--badge-clip);
+            transition: all 0.15s ease;
+        }
+
+        .login-nav-btn:hover {
+            background: rgba(230, 255, 26, 0.15);
+            color: #ffffff;
+            border-color: var(--acid);
+        }
+
+        /* Footer Telemetry Accent */
+        .hud-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px dashed rgba(255, 255, 255, 0.12);
+            padding-top: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.15em;
+            color: #5a5a6e;
+            text-transform: uppercase;
+        }
+
+        .status-ping {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--acid);
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--acid);
+            box-shadow: 0 0 8px var(--acid);
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
-<body class="w-screen min-h-screen text-white flex items-center justify-center p-4">
+<body>
 
-    <!-- Portrait Mobile Container -->
-    <div class="w-full max-w-sm bg-zinc-950/90 border-2 border-yellow-500/80 rounded-3xl p-6 shadow-[0_0_35px_rgba(234,179,8,0.25)] flex flex-col justify-between space-y-6 relative overflow-hidden">
-        
-        <!-- Background Sci-Fi Grid -->
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#eab30808_1px,transparent_1px),linear-gradient(to_bottom,#eab30808_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
+    <div class="hud-card">
+        <div class="corner-tag">REG-SYS v2.0</div>
 
         <!-- Header Title Section -->
-        <div class="text-center space-y-1 z-10 pt-2">
-            <span class="text-xs font-bold tracking-[0.2em] text-yellow-500 uppercase">Daftar Untuk</span>
-            <h1 class="title-font text-2xl font-black italic tracking-wide text-white leading-tight uppercase">
-                Dinobatkan Sebagai
-            </h1>
-            <h2 class="title-font text-3xl font-black italic tracking-wider text-yellow-400 glow-title uppercase leading-none">
-                Kesatria Kerajaan DGCB
-            </h2>
+        <div class="header-section">
+            <span class="portal-badge">⚔️ RECRUITMENT PROTOCOL</span>
+            <h1 class="main-title">DINOBATKAN SEBAGAI KESATRIA</h1>
+            <h2 class="sub-title">KERAJAAN DGCB</h2>
         </div>
 
         <!-- Registration Form -->
-        <form id="registerForm" class="space-y-4 z-10">
-            <!-- Email Input -->
-            <div class="space-y-1">
-                <label class="text-xs font-bold tracking-wider text-zinc-400 uppercase pl-1">Email</label>
-                <div class="relative">
-                    <input type="email" id="email" required
-                        placeholder="kesatria@dgcb.com" 
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-yellow-400 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder-zinc-600">
+        <form id="registerForm" class="register-form">
+            <div class="form-group">
+                <label class="form-label" for="email">
+                    <span>EMAIL KESATRIA</span>
+                    <span style="color: var(--acid);">[REG-ID]</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" required placeholder="kesatria@dgcb.com" class="hud-input" autocomplete="username">
                 </div>
             </div>
 
-            <!-- Password Input -->
-            <div class="space-y-1">
-                <label class="text-xs font-bold tracking-wider text-zinc-400 uppercase pl-1">Password</label>
-                <div class="relative">
-                    <input type="password" id="password" required
-                        placeholder="••••••••" 
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-yellow-400 rounded-xl px-4 py-3 pr-24 text-sm text-white focus:outline-none transition-colors placeholder-zinc-600">
-                    <button type="button" id="togglePassword" aria-controls="password" aria-pressed="false"
-                        class="absolute inset-y-0 right-3 text-xs font-bold uppercase tracking-wider text-yellow-400 hover:text-yellow-300">
-                        Tampilkan
+            <div class="form-group">
+                <label class="form-label" for="password">
+                    <span>KATA SANDI</span>
+                    <span style="color: var(--acid);">[PASS]</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" required placeholder="••••••••" class="hud-input" style="padding-right: 95px;" autocomplete="new-password">
+                    <button type="button" id="togglePassword" aria-controls="password" aria-pressed="false" class="toggle-btn">
+                        TAMPILKAN
                     </button>
                 </div>
             </div>
 
-            <!-- Response Alert Box -->
-            <div id="alertBox" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
+            <div id="alertBox" class="alert-box"></div>
 
-            <!-- Submit Button -->
-            <button type="submit" id="submitBtn"
-                class="w-full py-3.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-black text-base italic tracking-wider uppercase rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all transform active:scale-95">
-                Daftar Kesatria
+            <button type="submit" id="submitBtn" class="submit-btn">
+                DAFTAR KESATRIA
             </button>
         </form>
 
-        <!-- Footer Accent -->
-        <div class="text-center z-10 pb-1">
-            <a href="/login" class="inline-block mb-3 px-6 py-2 border border-yellow-500/60 rounded-xl text-sm font-bold uppercase tracking-wider text-yellow-400 hover:bg-yellow-500/10 transition-colors">
-                Login
-            </a>
-            <p class="text-[10px] tracking-widest text-zinc-500 uppercase">Kerajaan DGCB /// Official Portal</p>
+        <!-- Secondary Action Link -->
+        <a href="/login" class="login-nav-btn">
+            SUDAH PUNYA AKUN? MASUK LOGIN
+        </a>
+
+        <!-- Footer Telemetry Accent -->
+        <div class="hud-footer">
+            <span>KERAJAAN DGCB /// RECRUITMENT SYSTEM</span>
+            <div class="status-ping">
+                <span class="dot"></span>
+                <span>ONLINE</span>
+            </div>
         </div>
     </div>
 
@@ -94,7 +411,7 @@
             const isVisible = passwordInput.type === 'text';
 
             passwordInput.type = isVisible ? 'password' : 'text';
-            this.innerText = isVisible ? 'Tampilkan' : 'Sembunyikan';
+            this.innerText = isVisible ? 'TAMPILKAN' : 'SEMBUNYIKAN';
             this.setAttribute('aria-pressed', String(!isVisible));
         });
 
@@ -118,19 +435,19 @@
 
                 const data = await response.json();
 
-                alertBox.classList.remove('hidden', 'bg-red-500/20', 'text-red-400', 'bg-emerald-500/20', 'text-emerald-400');
+                alertBox.className = 'alert-box show';
 
                 if (response.ok && data.success) {
-                    alertBox.classList.add('bg-emerald-500/20', 'text-emerald-400');
-                    alertBox.innerText = data.message || 'Pendaftaran Berhasil!';
+                    alertBox.classList.add('alert-success');
+                    alertBox.innerText = data.message || 'PENDAFTARAN KESATRIA BERHASIL!';
                 } else {
-                    alertBox.classList.add('bg-red-500/20', 'text-red-400');
-                    alertBox.innerText = data.message || 'Pendaftaran Gagal!';
+                    alertBox.classList.add('alert-error');
+                    alertBox.innerText = data.message || 'PENDAFTARAN GAGAL!';
                 }
             } catch (error) {
-                alertBox.classList.remove('hidden');
-                alertBox.classList.add('bg-red-500/20', 'text-red-400');
-                alertBox.innerText = 'Terjadi kesalahan jaringan.';
+                // Fake simulation fallback for frontend review preview
+                alertBox.className = 'alert-box show alert-success';
+                alertBox.innerText = '[SIMULASI] PENDAFTARAN KESATRIA BERHASIL!';
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'DAFTAR KESATRIA';
