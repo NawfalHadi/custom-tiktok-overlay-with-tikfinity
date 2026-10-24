@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Join HUD - Ngikut Overlay</title>
+<title>Join HUD Broadcast Overlay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
@@ -14,8 +14,9 @@
     --bone: #f4f2ea;
     --acid: #e6ff1a;
     --red: #ff2d3d;
-    --cyan: #7fe9ff;
+    --cyan: #00f0ff;
     --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+    --card-cut: polygon(0 0, 88% 0, 100% 24%, 100% 100%, 12% 100%, 0 76%);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,6 +24,7 @@
 
   html, body {
     height: 100%;
+    width: 100%;
     background: transparent;
     overflow: hidden;
   }
@@ -30,209 +32,250 @@
   body {
     font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
     color: var(--bone);
+    position: relative;
     pointer-events: none;
   }
 
-
-  #viewport {
-    position: fixed;
+  /* ---------- Viewport Container ---------- */
+  .viewport {
+    position: absolute;
     inset: 0;
+    pointer-events: none;
     overflow: hidden;
+    z-index: 10;
   }
 
-  /* Dynamic Newspaper Throw & Slam Animation (Width:Height = 2:1 ratio) */
-  @keyframes paperThrowHUD {
+  /* ---------- Throw Newspaper Animation Keyframes ---------- */
+  @keyframes koranThrow {
     0% {
-      transform: translate(var(--throw-x), var(--throw-y)) rotate(var(--throw-angle-start)) scale(1.6);
+      transform: translate(var(--throw-x), var(--throw-y)) rotate(var(--throw-angle-start)) scale(2.2);
       opacity: 0;
+      filter: blur(8px) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.9));
     }
-    25% {
+    22% {
       transform: translate(0, 0) rotate(var(--throw-angle-end)) scale(1);
       opacity: 1;
+      filter: blur(0px) drop-shadow(0 12px 24px rgba(0, 0, 0, 0.75));
     }
-    30% {
-      transform: translate(0, -6px) rotate(calc(var(--throw-angle-end) + 2deg));
+    27% {
+      transform: translate(0, -8px) rotate(calc(var(--throw-angle-end) + 2deg)) scale(1.03);
     }
-    35% {
-      transform: translate(0, 0) rotate(var(--throw-angle-end));
+    32% {
+      transform: translate(0, 0) rotate(var(--throw-angle-end)) scale(1);
     }
     82% {
-      transform: translate(0, 0) rotate(var(--throw-angle-end));
+      transform: translate(0, 0) rotate(var(--throw-angle-end)) scale(1);
       opacity: 1;
+      filter: blur(0px) drop-shadow(0 12px 24px rgba(0, 0, 0, 0.75));
     }
     100% {
-      transform: translate(calc(var(--throw-x) * -0.6), calc(var(--throw-y) * -0.6)) rotate(calc(var(--throw-angle-start) * -0.8)) scale(0.7);
+      transform: translate(calc(var(--throw-x) * -0.7), calc(var(--throw-y) * -0.7)) rotate(calc(var(--throw-angle-start) * -1.2)) scale(0.4);
       opacity: 0;
+      filter: blur(12px);
     }
   }
 
-  .join-card {
+  /* ---------- Join HUD Card (Aspect Ratio Width:Height = 2:1) ---------- */
+  .paper-card {
     position: absolute;
+    width: 380px;
+    height: 140px;
+    aspect-ratio: 2 / 1;
+    background: rgba(11, 11, 16, 0.94);
+    border: 2px solid var(--acid);
+    clip-path: var(--card-cut);
+    box-shadow: inset 0 0 20px rgba(230, 255, 26, 0.12), 0 12px 24px rgba(0, 0, 0, 0.75);
+    padding: 12px 16px;
     display: flex;
-    align-items: center;
-    width: 480px;
-    height: 160px;
-    padding: 24px 34px 24px 52px;
-    background:
-      repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px),
-      linear-gradient(100deg, #0e0e16 0%, #07070a 72%);
-    border: 1px solid rgba(230, 255, 26, 0.35);
-    clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(230, 255, 26, 0.05);
-    animation: paperThrowHUD 3.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: auto;
+    animation: koranThrow 3.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    transform-origin: center center;
+    backdrop-filter: blur(8px);
     will-change: transform, opacity;
   }
 
-  .join-card::before {
+  /* Glowing Accent Ribbons */
+  .paper-card::before {
     content: '';
     position: absolute;
+    top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--acid), transparent 70%);
+    width: 6px;
+    height: 100%;
+    background: var(--acid);
+    box-shadow: 0 0 12px var(--acid);
   }
 
-  /* Octagonal Avatar Container */
-  .avatar-frame {
-    position: relative;
+  /* ---------- Inner Layout ---------- */
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     z-index: 2;
-    flex: 0 0 96px;
-    width: 82px;
-    height: 82px;
-    padding: 3px;
-    margin-right: 14px;
-    clip-path: var(--oct);
-    background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 42%, #1c1c24 58%, var(--acid) 100%);
-    box-shadow: 0 0 12px rgba(230, 255, 26, 0.3);
   }
 
-  .avatar-frame img {
+  .tag-top {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 12px;
+    background: var(--acid);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 800;
+    font-style: italic;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 8px rgba(255, 45, 61, 0.6);
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+    animation: blink 1s ease-in-out infinite alternate;
+  }
+
+  @keyframes blink {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+
+  .card-body {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 2;
+    margin-top: 4px;
+  }
+
+  /* ---------- Profile Frame (Octagonal) ---------- */
+  .frame {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    padding: 2px;
+    clip-path: var(--oct);
+    background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 40%, #1c1c24 60%, var(--acid) 100%);
+  }
+
+  .avatar {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0b0b10;
+    clip-path: var(--oct);
+  }
+
+  .avatar img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    clip-path: var(--oct);
-    background: #0b0b10;
-    filter: contrast(1.1) saturate(1.1);
+    filter: contrast(1.1) saturate(1.15);
   }
 
-  .panel-content {
-    flex: 1;
-    min-width: 0;
+  .avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.22) 48%, transparent 58%);
+  }
+
+  /* Text Information Block */
+  .details {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
-  }
-
-  .row-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .kicker {
-    font-size: 15px;
-    font-weight: 900;
-    font-style: italic;
-    letter-spacing: .26em;
-    text-transform: uppercase;
-    line-height: 1;
-    color: var(--acid);
-    text-shadow: 0 0 10px rgba(230, 255, 26, .35);
-  }
-
-  .tag {
-    display: flex;
-    align-items: center;
-    height: 22px;
-    padding: 0 12px;
-    background: var(--red);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 900;
-    font-style: italic;
-    letter-spacing: .16em;
-    text-transform: uppercase;
-    line-height: 1;
-    white-space: nowrap;
-    clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
+    min-width: 0;
+    flex: 1;
   }
 
   .name {
-    min-width: 0;
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 900;
     font-style: italic;
+    color: #ffffff;
+    line-height: 0.9;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    line-height: 1;
-    letter-spacing: .02em;
-    color: var(--bone);
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
   }
 
-  .sub {
-    font-size: 12px;
+  .subtext {
+    font-size: 13px;
     font-weight: 800;
     font-style: italic;
-    letter-spacing: .22em;
+    color: var(--acid);
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    line-height: 1;
-    color: var(--cyan);
-    white-space: nowrap;
-    border-top: 1px dashed rgba(127, 233, 255, 0.25);
-    padding-top: 5px;
-    margin-top: 2px;
+    margin-top: 3px;
+    border-top: 1px dashed rgba(230, 255, 26, 0.3);
+    padding-top: 2px;
   }
 </style>
 </head>
-<body class="pointer-events-none">
+<body>
 
-  <div id="viewport" class="absolute inset-0"></div>
+  <!-- Viewport container for multi-stack throw animations -->
+  <div class="viewport" id="viewport"></div>
 
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
   <script>
   (() => {
     const viewport = document.getElementById('viewport');
-    const CONFIG = { maxCards: 6 };
+    const MAX_CARDS = 6;
 
-    function hueOf(str) {
-      let h = 0;
-      for (const ch of str) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-      return h % 360;
-    }
+    const PLACEHOLDER_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#7c3aed"/>' +
+      '</linearGradient></defs>' +
+      '<rect width="100" height="100" fill="url(#g)"/>' +
+      '<circle cx="50" cy="40" r="18" fill="#c7d2fe"/>' +
+      '<path d="M18 100c4-22 17-32 32-32s28 10 32 32z" fill="#c7d2fe"/>' +
+      '</svg>'
+    );
 
-    function fallbackAvatar(name) {
-      const first = (name.trim().charAt(0) || '?').toUpperCase();
-      const letter = /[A-Z0-9]/.test(first) ? first : '?';
-      const svg =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
-        `<rect width="100" height="100" fill="hsl(${hueOf(name)} 30% 12%)"/>` +
-        '<text x="50" y="50" dy=".35em" font-family="Arial,sans-serif" font-weight="800" ' +
-        `font-size="56" text-anchor="middle" fill="#e6ff1a">${letter}</text>` +
-        '</svg>';
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-    }
+    function spawnPaperThrow(username, avatarUrl) {
+      const name = String(username || 'NEW_VIEWER').slice(0, 32);
+      const avatar = avatarUrl || PLACEHOLDER_AVATAR;
 
-    function spawnPaperThrow(name, avatar) {
-      const label = String(name || 'A VIEWER').slice(0, 32);
       const card = document.createElement('div');
-      card.className = 'join-card';
+      card.className = 'paper-card';
 
-      // Random placement across the entire screen viewport boundaries
-      const randomTop = Math.floor(Math.random() * 60) + 15;   // 15% to 75%
-      const randomLeft = Math.floor(Math.random() * 55) + 10;  // 10% to 65%
+      // Random landing coordinates across the viewport (15% to 70%)
+      const randomTop = Math.floor(Math.random() * 55) + 15;
+      const randomLeft = Math.floor(Math.random() * 55) + 15;
 
-      // Dynamic newspaper throw physics / trajectories
-      const throwAngleStart = (Math.random() * 50 - 25) + 'deg';
-      const throwAngleEnd = (Math.random() * 14 - 7) + 'deg';
-      const side = Math.random() > 0.5 ? 1 : -1;
-      const throwX = (side * (Math.floor(Math.random() * 350) + 400)) + 'px';
-      const throwY = (Math.floor(Math.random() * 400) - 200) + 'px';
+      // Dynamic newspaper throw trajectories and rotation angles
+      const throwAngleStart = (Math.random() * 90 - 45) + 'deg';
+      const throwAngleEnd = (Math.random() * 18 - 9) + 'deg';
+      const sideX = Math.random() > 0.5 ? 1 : -1;
+      const sideY = Math.random() > 0.5 ? 1 : -1;
+      const throwX = (sideX * (Math.floor(Math.random() * 400) + 500)) + 'px';
+      const throwY = (sideY * (Math.floor(Math.random() * 400) + 300)) + 'px';
 
       card.style.top = `${randomTop}%`;
       card.style.left = `${randomLeft}%`;
@@ -242,45 +285,47 @@
       card.style.setProperty('--throw-angle-end', throwAngleEnd);
 
       card.innerHTML = `
-        <div class="avatar-frame">
-          <img alt="Avatar">
+        <div class="card-header">
+          <span class="tag-top">NEW MEMBER</span>
+          <span class="live-badge"><span class="live-dot"></span>JOIN</span>
         </div>
-        <div class="panel-content">
-          <div class="row-top">
-            <span class="kicker">Ngikut</span>
-            <span class="tag">Welcome</span>
+        <div class="card-body">
+          <div class="frame">
+            <div class="avatar">
+              <img src="${avatar}" alt="Avatar" onerror="this.src='${PLACEHOLDER_AVATAR}'">
+            </div>
           </div>
-          <span class="name"></span>
-          <span class="sub">New viewer in frame</span>
+          <div class="details">
+            <span class="name">@${name}</span>
+            <span class="subtext">ENTERED THE STREAM</span>
+          </div>
         </div>
       `;
 
-      card.querySelector('.name').textContent = label;
-      const img = card.querySelector('img');
-      img.src = avatar || fallbackAvatar(label);
-      img.addEventListener('error', () => { img.src = fallbackAvatar(label); }, { once: true });
-
-      while (viewport.childElementCount >= CONFIG.maxCards) {
+      // Keep active stack bounded
+      while (viewport.childElementCount >= MAX_CARDS) {
         viewport.firstElementChild.remove();
       }
+
       viewport.appendChild(card);
 
+      // Clean up element after animation finishes
       card.addEventListener('animationend', () => card.remove());
-      setTimeout(() => card.remove(), 3500);
+      setTimeout(() => card.remove(), 3600);
     }
 
-    // Live Socket listener for incoming TikTok join events
+    /* ===== Live Socket Listener for TikTok Member Events ===== */
     if (typeof io === 'function') {
       try {
         const socket = io({ transports: ['polling'] });
         socket.on('tiktok_event', (res) => {
           if (!res || res.event !== 'member') return;
           const d = res.data || {};
-          const nickname = d.nickname || d.uniqueId || 'A VIEWER';
+          const nickname = d.nickname || d.uniqueId || 'NEW_VIEWER';
           const avatar =
             d.profilePictureUrl ||
             (d.userDetails && d.userDetails.profilePictureUrls && d.userDetails.profilePictureUrls[0]) ||
-            fallbackAvatar(nickname);
+            PLACEHOLDER_AVATAR;
           spawnPaperThrow(nickname, avatar);
         });
       } catch (err) {
