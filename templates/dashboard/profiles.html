@@ -3,138 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Kesatria - DGCB</title>
+    <title>Dashboard Kesatria - DGCB HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --ink: #07070a;
+            --bone: #f4f2ea;
+            --acid: #e6ff1a;
+            --red: #ff2d3d;
+            --cyan: #00f0ff;
+            --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+            --card-clip: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background: #09090b;
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: var(--ink);
+            color: var(--bone);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            position: relative;
+            overflow-x: hidden;
         }
-        .title-font {
-            font-family: 'Oswald', sans-serif;
+
+        /* Scanline Overlay Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            z-index: 50;
         }
-        .glow-gold {
-            text-shadow: 0 0 15px rgba(234, 179, 8, 0.6);
+
+        /* Outer HUD Container */
+        .hud-card {
+            width: 100%;
+            max-width: 380px;
+            background: #0b0b11;
+            border: 1px solid rgba(230, 255, 26, 0.3);
+            clip-path: var(--card-clip);
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(230, 255, 26, 0.05);
+            position: relative;
+            padding: 24px 20px;
         }
-        .glow-cyan {
-            text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+
+        .hud-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--acid), transparent 80%);
         }
-        .skew-box {
-            clip-path: polygon(4% 0, 100% 0, 96% 100%, 0% 100%);
+
+        /* Octagonal Avatar Frame */
+        .avatar-frame {
+            width: 86px;
+            height: 86px;
+            padding: 3px;
+            clip-path: var(--oct);
+            background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 50%, var(--acid) 100%);
+            box-shadow: 0 0 15px rgba(230, 255, 26, 0.3);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        /* Custom scrollbar untuk kotak aturan jika konten memanjang */
-        ::-webkit-scrollbar {
+
+        .avatar-inner {
+            width: 100%;
+            height: 100%;
+            clip-path: var(--oct);
+            background: #000;
+        }
+
+        /* Polygon Ribbons & Badges */
+        .hud-badge {
+            clip-path: var(--badge-clip);
+            font-style: italic;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        /* Custom Scrollbar for Rules Section */
+        .rules-scroll::-webkit-scrollbar {
             width: 4px;
         }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(234, 179, 8, 0.3);
-            border-radius: 4px;
+        .rules-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .rules-scroll::-webkit-scrollbar-thumb {
+            background: var(--acid);
+            border-radius: 2px;
+        }
+
+        .btn-glow {
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-glow:hover {
+            filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.6));
+            transform: translateY(-1px);
+        }
+        .btn-glow:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .pts-bump {
+            animation: ptsBump 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes ptsBump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); color: #fff; }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
-<body class="w-screen min-h-screen text-white flex items-center justify-center p-4">
+<body>
 
-    <!-- Portrait Mobile Container -->
-    <div class="w-full max-w-sm bg-zinc-950/90 border-2 border-yellow-500/80 rounded-3xl p-5 shadow-[0_0_35px_rgba(234,179,8,0.25)] flex flex-col justify-between space-y-4 relative overflow-hidden">
+    <!-- Main Mobile HUD Container -->
+    <div class="hud-card space-y-5">
         
-        <!-- Background Sci-Fi Grid -->
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#eab30808_1px,transparent_1px),linear-gradient(to_bottom,#eab30808_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
-
-        <!-- Top Header -->
-        <div class="flex items-center justify-between z-10 border-b border-zinc-800 pb-2">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
             <div>
-                <span class="text-[10px] font-bold tracking-[0.2em] text-yellow-500 uppercase">Status Kesatria</span>
-                <h1 class="title-font text-xl font-black italic tracking-wide text-white uppercase leading-none">Dashboard DGCB</h1>
+                <span class="text-xs font-black italic tracking-widest text-zinc-500 uppercase block leading-none">STATUS KESATRIA</span>
+                <h1 class="text-2xl font-black italic tracking-wider text-white uppercase leading-none mt-1">
+                    DASHBOARD <span style="color: var(--acid);">DGCB</span>
+                </h1>
             </div>
-            <a href="/logout" class="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 px-3 py-1 rounded-xl font-bold transition-all">
-                Keluar
+            <a href="/logout" class="hud-badge bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 px-4 py-1 text-sm font-black transition-colors">
+                KELUAR
             </a>
         </div>
 
-        <!-- User Profile & Stats Card -->
-        <div class="z-10 flex flex-col items-center space-y-3">
-            <!-- Profile Avatar dengan Border Glow -->
-            <div class="relative w-20 h-20 rounded-2xl p-1 bg-gradient-to-tr from-yellow-500 to-amber-600 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
-                <img src="{{ user.profile_picture_url }}" alt="Avatar" class="w-full h-full object-cover rounded-xl bg-black">
-            </div>
-
-            <!-- Username & Email -->
-            <div class="text-center space-y-0.5">
-                <div class="bg-zinc-900/90 border border-cyan-400/40 px-4 py-0.5 rounded-lg inline-block shadow-sm">
-                    <span class="title-font text-base font-black italic tracking-wider text-cyan-300 glow-cyan uppercase">@{{ user.username }}</span>
+        <!-- Profile Info & Telemetry Card -->
+        <div class="flex flex-col items-center space-y-3">
+            <!-- Octagonal Avatar Frame -->
+            <div class="avatar-frame">
+                <div class="avatar-inner">
+                    <img id="userAvatar" src="{{ user.profile_picture_url }}" 
+                         alt="Avatar" class="w-full h-full object-cover grayscale contrast-125">
                 </div>
-                <p class="text-[11px] text-zinc-400 font-medium">{{ user.email }}</p>
             </div>
 
-            <!-- Points / Stats Box -->
-            <div class="w-full bg-zinc-900/80 border border-yellow-500/40 rounded-2xl p-3 flex items-center justify-between shadow-inner">
+            <!-- Username & Email Display -->
+            <div class="text-center space-y-1">
+                <div class="hud-badge inline-block bg-[var(--cyan)] text-black px-4 py-0.5 text-lg font-black tracking-wider">
+                    @<span id="usernameDisplay">{{ user.username }}</span>
+                </div>
+                <p id="emailDisplay" class="text-xs font-semibold text-zinc-400 tracking-wider">{{ user.email }}</p>
+            </div>
+
+            <!-- Total Points Telemetry Box -->
+            <div class="w-full bg-zinc-950/80 border border-zinc-800 px-10 py-3.5 flex items-center justify-between relative overflow-hidden" style="clip-path: var(--badge-clip);">
                 <div class="flex flex-col">
-                    <span class="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Total Points</span>
-                    <span class="text-[11px] font-semibold text-yellow-500/80">Koleksi Poin Live</span>
+                    <span class="text-xs font-black italic tracking-widest text-zinc-400 uppercase">TOTAL POINTS</span>
+                    <span class="text-[11px] font-bold text-[var(--acid)] tracking-wider">KOLEKSI POIN LIVE</span>
                 </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="title-font text-2xl font-black italic tracking-tighter text-yellow-400 glow-gold">{{ user.points }}</span>
-                    <span class="text-xs font-bold text-yellow-600">PTS</span>
+                <div class="flex items-baseline space-x-1.5">
+                    <span id="userPoints" class="text-4xl font-black italic tracking-tight text-[var(--acid)]" style="text-shadow: 0 0 12px rgba(230, 255, 26, 0.4);">
+                        {{ user.points }}
+                    </span>
+                    <span class="text-xs font-black italic text-zinc-500">PTS</span>
                 </div>
             </div>
         </div>
 
-        <!-- Action Button: Hi Admin! -->
-        <div class="z-10">
-            <a href="/dashboard/alerting" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black text-sm italic tracking-wider uppercase rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all flex items-center justify-center space-x-2 transform active:scale-95">
-                <span>⚡ Hi Admin! (Kirim Alert)</span>
+        <!-- Action Controls -->
+        <div class="space-y-2">
+            <a href="/dashboard/alerting" class="btn-glow hud-badge w-full py-3 bg-[var(--cyan)] text-black text-center font-black text-base tracking-wider block">
+                ⚡ HI ADMIN! (KIRIM ALERT)
             </a>
         </div>
 
-        <!-- Rules & Point System Explanation Card -->
-        <div class="z-10 bg-black/70 border border-zinc-800 rounded-2xl p-3.5 space-y-2.5 max-h-48 overflow-y-auto">
-            <div class="flex items-center justify-between border-b border-zinc-800 pb-1.5">
-                <span class="text-xs font-bold tracking-widest text-yellow-400 uppercase title-font">📜 Aturan & Cara Dapat Poin</span>
-                <span class="text-[9px] bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded font-bold uppercase">Resmi</span>
+        <!-- Rules & System Explanation Card -->
+        <div class="bg-zinc-950/90 border border-zinc-800 p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <span class="text-sm font-black italic tracking-wider text-[var(--acid)] uppercase">📜 ATURAN & CARA DAPAT POIN</span>
+                <span class="hud-badge bg-zinc-800 text-zinc-300 px-2.5 py-0.5 text-xs font-black">RESMI</span>
             </div>
             
-            <ul class="text-[11px] space-y-2 text-zinc-300">
-                <li class="flex items-start space-x-2">
-                    <span class="text-yellow-400 font-bold">•</span>
+            <div class="rules-scroll max-h-44 overflow-y-auto space-y-2.5 pr-1 text-xs font-semibold text-zinc-300">
+                <div class="flex items-start space-x-2">
+                    <span class="text-[var(--acid)] font-black text-sm leading-none">•</span>
                     <div>
-                        <strong class="text-white">Kirim Gift Live:</strong> Poin dikalikan berdasarkan nilai koin dan ukuran gift (Small hingga Special Gift).
+                        <strong class="text-white font-black italic uppercase">Kirim Gift Live:</strong> Poin dikalikan berdasarkan nilai koin dan ukuran gift (Small hingga Special Gift).
                     </div>
-                </li>
-                <li class="flex items-start space-x-2">
-                    <span class="text-yellow-400 font-bold">•</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <span class="text-[var(--acid)] font-black text-sm leading-none">•</span>
                     <div>
-                        <strong class="text-white">Chat Aktif:</strong> Dapatkan poin dengan mengobrol di live chat. Dilengkapi cooldown 30 detik & minimal 3 karakter agar bebas spam.
+                        <strong class="text-white font-black italic uppercase">Chat Aktif:</strong> Dapatkan poin dengan mengobrol di live chat. Cooldown 30 detik & minimal 3 karakter agar bebas spam.
                     </div>
-                </li>
-                <li class="flex items-start space-x-2">
-                    <span class="text-yellow-400 font-bold">•</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <span class="text-[var(--acid)] font-black text-sm leading-none">•</span>
                     <div>
-                        <strong class="text-white">Absen Harian:</strong> Ketik <code class="bg-zinc-800 text-yellow-300 px-1 py-0.5 rounded font-mono">!daily</code> atau <code class="bg-zinc-800 text-yellow-300 px-1 py-0.5 rounded font-mono">!absen</code> di chat untuk klaim bonus harian.
+                        <strong class="text-white font-black italic uppercase">Absen Harian:</strong> Ketik <code class="bg-zinc-900 text-[var(--acid)] px-1.5 py-0.5 font-mono border border-zinc-800">!daily</code> atau <code class="bg-zinc-900 text-[var(--acid)] px-1.5 py-0.5 font-mono border border-zinc-800">!absen</code> di chat untuk klaim bonus harian.
                     </div>
-                </li>
-                <li class="flex items-start space-x-2">
-                    <span class="text-yellow-400 font-bold">•</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <span class="text-[var(--acid)] font-black text-sm leading-none">•</span>
                     <div>
-                        <strong class="text-white">Watch Time (Pasif):</strong> Poin otomatis bertambah setiap 5 menit bagi penonton setia yang aktif stay di live stream.
+                        <strong class="text-white font-black italic uppercase">Watch Time (Pasif):</strong> Poin otomatis bertambah setiap 5 menit bagi penonton setia yang stay di stream.
                     </div>
-                </li>
-                <li class="flex items-start space-x-2">
-                    <span class="text-yellow-400 font-bold">•</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <span class="text-[var(--acid)] font-black text-sm leading-none">•</span>
                     <div>
-                        <strong class="text-white">Bonus Member:</strong> Status Member Kerajaan mendapatkan pengali bonus (multiplier) poin yang lebih tinggi!
+                        <strong class="text-white font-black italic uppercase">Bonus Member:</strong> Status Member Kerajaan mendapatkan multiplier bonus poin yang lebih tinggi!
                     </div>
-                </li>
-            </ul>
+                </div>
+            </div>
         </div>
 
-        <!-- Footer Accent -->
-        <div class="text-center z-10 pt-1">
-            <p class="text-[10px] tracking-widest text-zinc-500 uppercase">Kerajaan DGCB /// Official Portal</p>
+        <!-- Footer Footer -->
+        <div class="text-center pt-1 border-t border-zinc-900">
+            <p class="text-[11px] font-black italic tracking-widest text-zinc-600 uppercase">KERAJAAN DGCB /// OFFICIAL PORTAL HUD</p>
         </div>
     </div>
 
+    <script>
+        // Fallback placeholder avatar SVG
+        const PLACEHOLDER_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+            '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+            '<stop offset="0" stop-color="#1c1c24"/><stop offset="1" stop-color="#0b0b10"/>' +
+            '</linearGradient></defs>' +
+            '<rect width="100" height="100" fill="url(#g)"/>' +
+            '<circle cx="50" cy="40" r="18" fill="#e6ff1a"/>' +
+            '<path d="M18 100c4-22 17-32 32-32s28 10 32 32z" fill="#e6ff1a"/>' +
+            '</svg>'
+        );
+
+        let currentPoints = parseInt("{{ user.points }}", 10) || 0;
+        const avatarEl = document.getElementById('userAvatar');
+        const pointsEl = document.getElementById('userPoints');
+
+        avatarEl.addEventListener('error', () => {
+            avatarEl.src = PLACEHOLDER_AVATAR;
+        });
+    </script>
 </body>
 </html>
