@@ -3,133 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kirim Alert - DGCB</title>
+    <title>Kirim Alert - DGCB HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --ink: #07070a;
+            --bone: #f4f2ea;
+            --acid: #e6ff1a;
+            --cyan: #00f0ff;
+            --red: #ff2d3d;
+            --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+            --card-clip: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+            --input-clip: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background: #09090b;
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: var(--ink);
+            color: var(--bone);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            position: relative;
+            overflow-x: hidden;
         }
-        .title-font {
-            font-family: 'Oswald', sans-serif;
+
+        /* CRT Scanline Overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            z-index: 50;
         }
-        .glow-gold {
-            text-shadow: 0 0 15px rgba(234, 179, 8, 0.6);
+
+        /* Outer HUD Card Container */
+        .hud-card {
+            width: 100%;
+            max-width: 380px;
+            background: #0b0b11;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            clip-path: var(--card-clip);
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(0, 240, 255, 0.05);
+            position: relative;
+            padding: 24px 20px;
         }
-        .glow-cyan {
-            text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+
+        .hud-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--cyan), transparent 80%);
+        }
+
+        /* Octagonal Avatar Frame */
+        .avatar-frame {
+            width: 44px;
+            height: 44px;
+            padding: 2px;
+            clip-path: var(--oct);
+            background: linear-gradient(135deg, var(--cyan) 0%, #1c1c24 50%, var(--cyan) 100%);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+            flex-shrink: 0;
+        }
+
+        .avatar-inner {
+            width: 100%;
+            height: 100%;
+            clip-path: var(--oct);
+            background: #000;
+        }
+
+        /* Polygon Ribbons & Badges */
+        .hud-badge {
+            clip-path: var(--badge-clip);
+            font-style: italic;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .input-clipped {
+            clip-path: var(--input-clip);
+        }
+
+        .btn-glow {
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-glow:hover {
+            filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.7));
+            transform: translateY(-1px);
+        }
+        .btn-glow:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* Textarea Focus Styling */
+        .custom-textarea {
+            background: #060609;
+            border: 1px solid #27272a;
+            color: #fff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .custom-textarea:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.15);
+        }
+
+        .alert-error {
+            background: rgba(255, 45, 61, 0.2);
+            color: var(--red);
+            border: 1px solid rgba(255, 45, 61, 0.4);
+        }
+
+        .alert-success {
+            background: rgba(230, 255, 26, 0.15);
+            color: var(--acid);
+            border: 1px solid rgba(230, 255, 26, 0.3);
+        }
+
+        .pts-bump {
+            animation: ptsBump 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes ptsBump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); color: #fff; }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
-<body class="w-screen min-h-screen text-white flex items-center justify-center p-4">
+<body>
 
-    <!-- Portrait Mobile Container -->
-    <div class="w-full max-w-sm bg-zinc-950/90 border-2 border-cyan-500/80 rounded-3xl p-5 shadow-[0_0_35px_rgba(6,182,212,0.25)] flex flex-col justify-between space-y-4 relative overflow-hidden">
+    <!-- Main Mobile HUD Container -->
+    <div class="hud-card space-y-4">
         
-        <!-- Background Sci-Fi Grid -->
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#06b6d408_1px,transparent_1px),linear-gradient(to_bottom,#06b6d408_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
-
-        <!-- Top Header with Back Button -->
-        <div class="flex items-center justify-between z-10 border-b border-zinc-800 pb-2">
-            <a href="/dashboard" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-xl font-bold transition-all flex items-center space-x-1">
-                <span>← Kembali</span>
+        <!-- Header Section with Back Navigation -->
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <a href="/dashboard" class="hud-badge bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-3 py-1 text-xs font-black transition-colors flex items-center space-x-1">
+                <span>← KEMBALI</span>
             </a>
             <div class="text-right">
-                <span class="text-[9px] font-bold tracking-[0.2em] text-cyan-400 uppercase">Live Overlay</span>
-                <h1 class="title-font text-lg font-black italic tracking-wide text-white uppercase leading-none">Hi Admin!</h1>
+                <span class="text-[10px] font-black italic tracking-widest text-[var(--cyan)] uppercase block leading-none">LIVE OVERLAY PROTOCOL</span>
+                <h1 class="text-xl font-black italic tracking-wider text-white uppercase leading-none mt-0.5">HI ADMIN!</h1>
             </div>
         </div>
 
-        <!-- User Summary Card -->
-        <div class="z-10 bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 flex items-center justify-between">
+        <!-- User Summary & Point Telemetry Card -->
+        <div class="bg-zinc-950/90 border border-zinc-800 px-10 py-3 flex items-center justify-between relative overflow-hidden" style="clip-path: var(--badge-clip);">
             <div class="flex items-center space-x-3">
-                <img src="{{ user.profile_picture_url }}" alt="Avatar" class="w-10 h-10 object-cover rounded-xl border border-cyan-400/50">
+                <!-- Octagonal Avatar Frame -->
+                <div class="avatar-frame">
+                    <div class="avatar-inner">
+                        <img id="userAvatar" src="{{ user.profile_picture_url }}" 
+                             alt="Avatar" class="w-full h-full object-cover grayscale contrast-125">
+                    </div>
+                </div>
                 <div>
-                    <span class="title-font text-sm font-black italic text-cyan-300 uppercase block">@{{ user.username }}</span>
-                    <span class="text-[10px] text-zinc-400">Poin Anda</span>
+                    <div class="hud-badge inline-block bg-[var(--cyan)] text-black px-2.5 py-0.2 text-xs font-black tracking-wider">
+                        @<span id="usernameDisplay">{{ user.username }}</span>
+                    </div>
+                    <span class="text-[10px] font-black italic text-zinc-400 block tracking-widest uppercase mt-0.5">POIN SAYA</span>
                 </div>
             </div>
-            <div class="text-right">
-                <span id="userPoints" class="title-font text-xl font-black text-yellow-400 glow-gold" data-points="{{ user.points }}">{{ user.points }}</span>
-                <span class="text-[10px] font-bold text-yellow-600 block">PTS</span>
+            
+            <div class="text-right pr-2">
+                <span id="userPoints" class="text-2xl font-black italic tracking-tight text-[var(--acid)] leading-none block" style="text-shadow: 0 0 10px rgba(230, 255, 26, 0.4);" data-points="{{ user.points }}">
+                    {{ user.points }}
+                </span>
+                <span class="text-[10px] font-black italic text-zinc-500 tracking-widest uppercase">PTS</span>
             </div>
         </div>
 
-        <!-- Header Title Pesan Teks -->
-        <div class="z-10 bg-zinc-900 p-2 rounded-xl border border-zinc-800 text-center">
-            <span class="text-xs font-black italic uppercase text-cyan-400 tracking-wider">💬 Kirim Pesan Teks ke Layar</span>
+        <!-- Header Title Banner -->
+        <div class="bg-zinc-950 border border-zinc-800 p-2 text-center" style="clip-path: var(--badge-clip);">
+            <span class="text-xs font-black italic uppercase text-[var(--cyan)] tracking-widest">💬 KIRIM PESAN TEKS KE LAYAR</span>
         </div>
 
         <!-- Form Section -->
-        <div class="z-10 space-y-3">
-            
-            <!-- SECTION MESSAGE -->
-            <div id="sectionMessage" class="space-y-3">
+        <div class="space-y-3">
+            <div id="sectionMessage" class="space-y-2.5">
                 <div class="space-y-1">
-                    <div class="flex justify-between items-center text-[11px] text-zinc-400 px-1">
-                        <span>Pesan untuk Layar (Live)</span>
-                        <span id="wordCount">0 kata</span>
+                    <div class="flex justify-between items-center text-xs font-black italic tracking-wider text-zinc-400 px-1">
+                        <span class="uppercase">PESAN UNTUK LAYAR (LIVE STREAM)</span>
+                        <span id="wordCount" class="text-[var(--acid)]">0 KATA</span>
                     </div>
                     <textarea id="msgInput" rows="4" oninput="calculateMessageCost()"
                         placeholder="Tulis pesan kesatria Anda di sini... (500 pts / 10 kata)" 
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-400 rounded-xl p-3 text-xs text-white focus:outline-none transition-colors placeholder-zinc-600 resize-none"></textarea>
+                        class="custom-textarea input-clipped w-full p-3 text-xs font-semibold placeholder-zinc-600 resize-none"></textarea>
                 </div>
 
                 <!-- Tier Info Message -->
-                <div class="bg-black/50 border border-zinc-800 rounded-2xl p-2.5 text-[10px] space-y-1 text-zinc-300">
-                    <div class="flex justify-between font-bold text-cyan-300">
-                        <span>Ketentuan Biaya Pesan:</span>
-                        <span id="msgCostDisplay">500 Pts</span>
+                <div class="bg-zinc-950/80 border border-zinc-800 p-2.5 text-[11px] font-semibold space-y-1 text-zinc-300" style="clip-path: var(--input-clip);">
+                    <div class="flex justify-between font-black italic text-[var(--cyan)] uppercase tracking-wider">
+                        <span>KETENTUAN BIAYA PESAN:</span>
+                        <span id="msgCostDisplay" class="text-[var(--acid)]">500 PTS</span>
                     </div>
-                    <p class="text-zinc-400">• 1 - 10 Kata = 500 Pts | 11 - 20 Kata = 1.000 Pts | 21 - 30 Kata = 1.500 Pts, dst.</p>
+                    <p class="text-zinc-400 leading-snug">
+                        • 1 - 10 Kata = 500 Pts | 11 - 20 Kata = 1.000 Pts | 21 - 30 Kata = 1.500 Pts, dst.
+                    </p>
                 </div>
             </div>
 
             <!-- Alert / Status Notification Box -->
-            <div id="alertBox" class="hidden p-2 rounded-xl text-[11px] font-bold text-center"></div>
+            <div id="alertBox" class="hidden p-2.5 text-xs font-black italic uppercase tracking-wider text-center" style="clip-path: var(--badge-clip);"></div>
 
             <!-- Submit Button UI -->
             <button type="button" id="submitAlertBtn" onclick="submitAlert()"
-                class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black text-sm italic tracking-wider uppercase rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all transform active:scale-95">
-                Kirim Alert Ke Layar (500 PTS)
+                class="btn-glow hud-badge w-full py-3 bg-[var(--cyan)] text-black text-center font-black text-base tracking-wider block">
+                KIRIM ALERT KE LAYAR (500 PTS)
             </button>
         </div>
 
         <!-- Footer Accent -->
-        <div class="text-center z-10 pt-1">
-            <p class="text-[10px] tracking-widest text-zinc-500 uppercase">Kerajaan DGCB /// Alert System</p>
+        <div class="text-center pt-1 border-t border-zinc-900">
+            <p class="text-[11px] font-black italic tracking-widest text-zinc-600 uppercase">KERAJAAN DGCB /// ALERT PROTOCOL SYSTEM</p>
         </div>
     </div>
 
     <script>
+        // Placeholder fallback image
+        const PLACEHOLDER_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+            '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+            '<stop offset="0" stop-color="#1c1c24"/><stop offset="1" stop-color="#0b0b10"/>' +
+            '</linearGradient></defs>' +
+            '<rect width="100" height="100" fill="url(#g)"/>' +
+            '<circle cx="50" cy="40" r="18" fill="#00f0ff"/>' +
+            '<path d="M18 100c4-22 17-32 32-32s28 10 32 32z" fill="#00f0ff"/>' +
+            '</svg>'
+        );
+
         let calculatedCost = 500;
+        let currentPoints = parseInt(document.getElementById('userPoints').getAttribute('data-points'), 10) || 0;
+        const avatarEl = document.getElementById('userAvatar');
+
+        avatarEl.addEventListener('error', () => {
+            avatarEl.src = PLACEHOLDER_AVATAR;
+        });
 
         function calculateMessageCost() {
             const message = document.getElementById('msgInput').value.trim();
             const wordCount = message ? message.split(/\s+/).length : 0;
             calculatedCost = Math.max(1, Math.ceil(wordCount / 10)) * 500;
 
-            document.getElementById('wordCount').innerText = `${wordCount} kata`;
-            document.getElementById('msgCostDisplay').innerText = `${calculatedCost.toLocaleString()} Pts`;
-            document.getElementById('submitAlertBtn').innerText = `Kirim Alert Ke Layar (${calculatedCost.toLocaleString()} PTS)`;
+            document.getElementById('wordCount').innerText = `${wordCount} KATA`;
+            document.getElementById('msgCostDisplay').innerText = `${calculatedCost.toLocaleString()} PTS`;
+            document.getElementById('submitAlertBtn').innerText = `KIRIM ALERT KE LAYAR (${calculatedCost.toLocaleString()} PTS)`;
         }
 
         async function submitAlert() {
             const alertBox = document.getElementById('alertBox');
-            alertBox.classList.remove('hidden', 'bg-red-500/20', 'text-red-400', 'bg-emerald-500/20', 'text-emerald-400');
+            alertBox.classList.add('hidden');
+            alertBox.className = 'p-2.5 text-xs font-black italic uppercase tracking-wider text-center';
 
             const messageText = document.getElementById('msgInput').value.trim();
             if (!messageText) {
-                alertBox.classList.add('bg-red-500/20', 'text-red-400');
-                alertBox.innerText = 'Pesan tidak boleh kosong!';
+                alertBox.classList.remove('hidden');
+                alertBox.classList.add('alert-error');
+                alertBox.innerText = '⚠️ PESAN TIDAK BOLEH KOSONG!';
+                return;
+            }
+
+            if (currentPoints < calculatedCost) {
+                alertBox.classList.remove('hidden');
+                alertBox.classList.add('alert-error');
+                alertBox.innerText = `⚠️ POIN TIDAK CUKUP! MEMBUTUHKAN ${calculatedCost.toLocaleString()} PTS.`;
                 return;
             }
 
             try {
-                // Kirim pesan ke backend, biarkan server yang validasi & potong poin di database
+                // Async API fetch call to backend endpoint preserving existing functionality
                 const response = await fetch('/api/trigger/msg-alert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -139,29 +295,35 @@
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    alertBox.classList.add('bg-emerald-500/20', 'text-emerald-400');
-                    alertBox.innerText = result.message;
+                    alertBox.classList.remove('hidden');
+                    alertBox.classList.add('alert-success');
+                    alertBox.innerText = `⚡ ${result.message || 'ALERT BERHASIL DIKIRIM KE LAYAR!'}`;
                     
-                    // Update sisa poin di DOM secara real-time berdasarkan balasan server
-                    const pointsEl = document.getElementById('userPoints');
                     if (result.remaining_points != null && Number.isFinite(Number(result.remaining_points))) {
-                        const remainingPoints = Number(result.remaining_points);
-                        pointsEl.setAttribute('data-points', remainingPoints);
-                        pointsEl.innerText = remainingPoints.toLocaleString();
+                        currentPoints = Number(result.remaining_points);
+                    } else {
+                        currentPoints -= calculatedCost;
                     }
+                    
+                    const pointsEl = document.getElementById('userPoints');
+                    pointsEl.setAttribute('data-points', currentPoints);
+                    pointsEl.innerText = currentPoints.toLocaleString();
+                    pointsEl.classList.remove('pts-bump');
+                    void pointsEl.offsetWidth;
+                    pointsEl.classList.add('pts-bump');
 
-                    // Kosongkan input pesan
                     document.getElementById('msgInput').value = '';
                     calculateMessageCost();
                 } else {
-                    // Jika server menolak (misal poin kurang), tampilkan pesan error dari server
-                    alertBox.classList.add('bg-red-500/20', 'text-red-400');
-                    alertBox.innerText = result.message || 'Gagal mengirim alert.';
+                    alertBox.classList.remove('hidden');
+                    alertBox.classList.add('alert-error');
+                    alertBox.innerText = `⚠️ ${result.message || 'GAGAL MENGIRIM ALERT.'}`;
                 }
             } catch (err) {
                 console.error(err);
-                alertBox.classList.add('bg-red-500/20', 'text-red-400');
-                alertBox.innerText = 'Terjadi kesalahan koneksi ke server.';
+                alertBox.classList.remove('hidden');
+                alertBox.classList.add('alert-error');
+                alertBox.innerText = '⚠️ TERJADI KESALAHAN KONEKSI KE SERVER.';
             }
         }
     </script>
