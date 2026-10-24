@@ -1,94 +1,308 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream Control Panel</title>
+    <title>Stream Control Panel - Kerajaan DGCB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --ink: #07070a;
+            --bone: #f4f2ea;
+            --acid: #e6ff1a;
+            --red: #ff2d3d;
+            --cyan: #00f0ff;
+            --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+            --card-clip: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+            --btn-clip: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: var(--ink);
+            color: var(--bone);
+            min-height: 100vh;
+            width: 100vw;
+            padding: 24px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Scanline Overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* HUD Card Window Container */
+        .hud-card {
+            background: #0b0b11;
+            border: 1px solid rgba(230, 255, 26, 0.3);
+            clip-path: var(--card-clip);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(230, 255, 26, 0.05);
+            position: relative;
+        }
+
+        .hud-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--acid), transparent 80%);
+        }
+
+        /* HUD Badges & Input Fields */
+        .hud-badge {
+            clip-path: var(--badge-clip);
+            font-style: italic;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .hud-input {
+            background: rgba(7, 7, 10, 0.85);
+            border: 1.5px solid #2a2a38;
+            color: var(--bone);
+            font-family: inherit;
+            font-style: italic;
+            font-weight: 700;
+            clip-path: var(--badge-clip);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .hud-input:focus {
+            border-color: var(--acid);
+            box-shadow: 0 0 12px rgba(230, 255, 26, 0.25);
+            background: rgba(18, 18, 26, 0.95);
+        }
+
+        /* Buttons with Cyberpunk Glow */
+        .btn-acid {
+            background: var(--acid);
+            color: var(--ink);
+            clip-path: var(--btn-clip);
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 0 15px rgba(230, 255, 26, 0.3);
+        }
+        .btn-acid:hover {
+            background: #ffffff;
+            filter: drop-shadow(0 0 10px rgba(230, 255, 26, 0.6));
+            transform: translateY(-1px);
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: #ffffff;
+            clip-path: var(--btn-clip);
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 0 15px rgba(255, 45, 61, 0.3);
+        }
+        .btn-red:hover {
+            background: #ff5e6c;
+            filter: drop-shadow(0 0 10px rgba(255, 45, 61, 0.6));
+            transform: translateY(-1px);
+        }
+
+        .btn-dark {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(230, 255, 26, 0.3);
+            color: var(--acid);
+            clip-path: var(--badge-clip);
+            transition: all 0.2s ease;
+        }
+        .btn-dark:hover {
+            background: rgba(230, 255, 26, 0.15);
+            color: #ffffff;
+            border-color: var(--acid);
+        }
+
+        /* Status Dot Pulsing */
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--acid);
+            box-shadow: 0 0 10px var(--acid);
+            animation: pulse 1.2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+    </style>
 </head>
-<body class="bg-zinc-900 text-white min-h-screen p-6">
-    <div class="max-w-4xl mx-auto space-y-6">
+<body class="relative z-10">
+
+    <div class="max-w-5xl mx-auto space-y-6">
         
-        <!-- Stream Action Triggers -->
-        <div class="p-6 bg-zinc-800 rounded-2xl shadow-xl border border-zinc-700 flex flex-col md:flex-row gap-4 justify-between items-center">
-            <h1 class="text-xl font-bold tracking-wide">Stream Controller</h1>
-            <div class="flex gap-3 w-full md:w-auto">
-                <button onclick="triggerBreak()" class="flex-1 md:flex-none px-6 py-3 bg-red-600 hover:bg-red-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider">
-                    Trigger Transition 🚀
-                </button>
-                <button onclick="toggleUpetiState()" id="toggleUpetiBtn" class="flex-1 md:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider">
-                    Upeti Overlay: ACTIVE 🟢
-                </button>
+        <!-- Stream Action Triggers Header Block -->
+        <div class="hud-card p-6 md:p-8 space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <span class="hud-badge inline-block bg-[var(--acid)] text-[var(--ink)] px-3 py-0.5 text-xs tracking-wider mb-2">
+                        🎮 BROADCAST COMMAND CENTER
+                    </span>
+                    <h1 class="text-3xl md:text-4xl font-black italic uppercase tracking-wider text-white leading-none">
+                        STREAM CONTROLLER
+                    </h1>
+                    <p class="text-xs font-bold italic tracking-widest text-zinc-400 uppercase mt-1">
+                        KERAJAAN DGCB /// HUD CONTROL OVERLAY PROTOCOL
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3 w-full md:w-auto">
+                    <button onclick="triggerBreak()" class="flex-1 md:flex-none px-6 py-3.5 btn-red font-black italic uppercase text-sm tracking-widest">
+                        TRIGGER TRANSITION 🚀
+                    </button>
+                    <button onclick="toggleUpetiState()" id="toggleUpetiBtn" class="flex-1 md:flex-none px-6 py-3.5 btn-acid font-black italic uppercase text-sm tracking-widest">
+                        UPETI OVERLAY: ACTIVE 🟢
+                    </button>
+                </div>
             </div>
         </div>
 
+        <!-- Notification Toast -->
+        <div id="toast" class="hidden p-3 bg-[var(--acid)]/10 border-l-4 border-[var(--acid)] text-[var(--acid)] font-bold italic uppercase tracking-wider text-xs hud-badge transition-all">
+            <span id="toastMsg">ACTION EXECUTED</span>
+        </div>
+
         <!-- Members Management Section -->
-        <div class="p-6 bg-zinc-800 rounded-2xl shadow-xl border border-zinc-700 space-y-4">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 class="text-lg font-bold text-zinc-200">Members List</h2>
+        <div class="hud-card p-6 md:p-8 space-y-6">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-zinc-800 pb-5">
+                <div>
+                    <h2 class="text-2xl font-black italic uppercase tracking-wider text-[var(--acid)] leading-none">
+                        ⚔️ KESATRIA MEMBERS LIST
+                    </h2>
+                    <p class="text-xs font-bold italic text-zinc-400 uppercase tracking-widest mt-1">
+                        MANAGE & ANNOUNCE RECRUITS LIVE ON STREAM
+                    </p>
+                </div>
                 
                 <!-- Search & Filters -->
-                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <input type="text" id="searchInput" oninput="fetchMembers()" placeholder="Search username..." 
-                           class="bg-zinc-900 text-sm px-4 py-2 rounded-xl border border-zinc-700 focus:outline-none focus:border-indigo-500 text-white w-full md:w-48">
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <input type="text" id="searchInput" oninput="filterAndRenderMembers()" placeholder="CARI USERNAME..." 
+                           class="hud-input text-xs px-4 py-2.5 w-full sm:w-48 text-white uppercase placeholder-zinc-600">
                     
-                    <select id="announcedFilter" onchange="fetchMembers()" class="bg-zinc-900 text-sm px-3 py-2 rounded-xl border border-zinc-700 text-zinc-300 focus:outline-none">
-                        <option value="">All Status</option>
-                        <option value="0">Unannounced</option>
-                        <option value="1">Announced</option>
+                    <select id="announcedFilter" onchange="filterAndRenderMembers()" class="hud-input text-xs px-3 py-2.5 text-zinc-300 uppercase">
+                        <option value="">ALL STATUS</option>
+                        <option value="0">UNANNOUNCED (PENDING)</option>
+                        <option value="1">ANNOUNCED</option>
                     </select>
 
-                    <button onclick="toggleSort()" id="sortBtn" class="bg-zinc-700 hover:bg-zinc-600 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-200">
-                        Sort: Newest First
+                    <button onclick="toggleSort()" id="sortBtn" class="btn-dark px-4 py-2.5 text-xs font-black italic uppercase tracking-wider">
+                        SORT: NEWEST FIRST
                     </button>
                 </div>
             </div>
 
             <!-- Members Table Structure -->
-            <div class="overflow-x-auto rounded-xl border border-zinc-700">
-                <table class="w-full text-left text-sm text-zinc-300">
-                    <thead class="bg-zinc-900/80 text-zinc-400 uppercase text-xs">
-                        <tr>
-                            <th class="py-3 px-4">Username</th>
-                            <th class="py-3 px-4">Created At</th>
-                            <th class="py-3 px-4 text-center">Status</th>
-                            <th class="py-3 px-4 text-right">Action</th>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-zinc-800 text-[var(--acid)] font-black italic uppercase text-xs tracking-widest">
+                            <th class="py-3 px-4">KESATRIA USERNAME</th>
+                            <th class="py-3 px-4">JOINED TIMESTAMP</th>
+                            <th class="py-3 px-4 text-center">ANNOUNCE STATUS</th>
+                            <th class="py-3 px-4 text-right">ACTION COMMAND</th>
                         </tr>
                     </thead>
-                    <tbody id="membersTable" class="divide-y divide-zinc-700/50">
-                        <!-- Dynamic rows will inject here -->
+                    <tbody id="membersTable" class="divide-y divide-zinc-800/60 font-bold italic text-base">
+                        <!-- Dynamic rows injected here -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Telemetry Footer -->
+            <div class="flex items-center justify-between pt-4 border-t border-zinc-800/80 text-xs font-black italic uppercase tracking-widest text-zinc-500">
+                <span>DGCB STREAM ENGINE v2.4</span>
+                <div class="flex items-center gap-2 text-[var(--acid)]">
+                    <span class="status-dot"></span>
+                    <span>SYSTEM ONLINE</span>
+                </div>
             </div>
         </div>
 
     </div>
 
     <script>
+        // Mock dataset for immediate frontend interactive preview
+        const mockMembers = [
+            { id: 101, username: 'GatotKaca_Gaming', profile_picture_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', is_announced: 0, created_at: '2026-10-24 01:45:10' },
+            { id: 102, username: 'Srikandi_Slayer', profile_picture_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', is_announced: 1, created_at: '2026-10-24 01:20:33' },
+            { id: 103, username: 'Prabu_Brawijaya', profile_picture_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', is_announced: 0, created_at: '2026-10-24 01:05:00' },
+            { id: 104, username: 'Patih_GajahMada', profile_picture_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80', is_announced: 1, created_at: '2026-10-23 23:50:12' },
+            { id: 105, username: 'Nyi_Roro_Stream', profile_picture_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', is_announced: 0, created_at: '2026-10-23 22:30:45' }
+        ];
+
+        let membersData = [...mockMembers];
         let currentSort = 'desc';
         let upetiIsActive = true;
 
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
         function toggleSort() {
             currentSort = currentSort === 'desc' ? 'asc' : 'desc';
-            document.getElementById('sortBtn').innerText = currentSort === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
-            fetchMembers();
+            document.getElementById('sortBtn').innerText = currentSort === 'desc' ? 'SORT: NEWEST FIRST' : 'SORT: OLDEST FIRST';
+            filterAndRenderMembers();
         }
 
         function fetchMembers() {
-            console.log('Fetching members...');
             const search = document.getElementById('searchInput').value;
             const announced = document.getElementById('announcedFilter').value;
             
-            const params = new URLSearchParams({
-                search: search,
-                sort: currentSort,
-                announced: announced
-            });
+            const params = new URLSearchParams({ search, sort: currentSort, announced });
 
             fetch(`/api/members?${params}`)
                 .then(res => res.json())
-                .then(data => renderMembers(data))
-                .catch(err => console.error("Error fetching members:", err));
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        membersData = data;
+                    }
+                    filterAndRenderMembers();
+                })
+                .catch(err => {
+                    filterAndRenderMembers();
+                });
+        }
+
+        function filterAndRenderMembers() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const announcedFilter = document.getElementById('announcedFilter').value;
+
+            let filtered = membersData.filter(m => {
+                const matchesSearch = m.username.toLowerCase().includes(search);
+                const matchesAnnounced = announcedFilter === '' || m.is_announced.toString() === announcedFilter;
+                return matchesSearch && matchesAnnounced;
+            });
+
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.created_at);
+                const dateB = new Date(b.created_at);
+                return currentSort === 'desc' ? dateB - dateA : dateA - dateB;
+            });
+
+            renderMembers(filtered);
         }
 
         function renderMembers(members) {
@@ -97,29 +311,31 @@
             tbody.innerHTML = '';
 
             if (!Array.isArray(members) || members.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-zinc-500">No members found</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-zinc-500 uppercase tracking-widest font-black">TIDAK ADA KESATRIA DITEMUKAN</td></tr>`;
                 return;
             }
 
             members.forEach(m => {
-                // console.log('Member data:', m);
                 const isAnnounced = m.is_announced === 1;
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-zinc-800/50 border-b border-zinc-700/50";
+                tr.className = "hover:bg-white/5 transition-all border-b border-zinc-800/50";
 
                 const statusBadge = isAnnounced 
-                    ? `<span class="px-2 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-md text-xs">Announced</span>`
-                    : `<span class="px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-xs">Pending</span>`;
+                    ? `<span class="px-3 py-1 bg-[var(--acid)]/15 text-[var(--acid)] border border-[var(--acid)]/30 hud-badge text-xs uppercase font-black tracking-wider">ANNOUNCED</span>`
+                    : `<span class="px-3 py-1 bg-[var(--red)]/15 text-[var(--red)] border border-[var(--red)]/30 hud-badge text-xs uppercase font-black tracking-wider">PENDING</span>`;
 
                 const actionButton = isAnnounced
-                    ? `<button onclick="announceMember(${m.id}, 1, '${m.username}', '${m.profile_picture_url || ''}')" class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all">Re-announce</button>`
-                    : `<button onclick="announceMember(${m.id}, 1, '${m.username}', '${m.profile_picture_url || ''}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold rounded-lg text-white transition-all shadow-md">Announce</button>`;
+                    ? `<button onclick="announceMember(${m.id}, 1, '${m.username}', '${m.profile_picture_url || ''}')" class="btn-dark px-4 py-1.5 text-xs font-black italic uppercase tracking-wider">RE-ANNOUNCE</button>`
+                    : `<button onclick="announceMember(${m.id}, 1, '${m.username}', '${m.profile_picture_url || ''}')" class="btn-acid px-4 py-1.5 text-xs font-black italic uppercase tracking-wider">ANNOUNCE ⚔️</button>`;
 
                 tr.innerHTML = `
-                    <td class="py-3 px-4 font-semibold text-white">@${m.username}</td>
-                    <td class="py-3 px-4 text-xs text-zinc-400">${m.created_at}</td>
-                    <td class="py-3 px-4 text-center">${statusBadge}</td>
-                    <td class="py-3 px-4 text-right">${actionButton}</td>
+                    <td class="py-3.5 px-4 font-black text-white flex items-center gap-3">
+                        <img src="${m.profile_picture_url}" alt="${m.username}" class="w-8 h-8 rounded-full border border-[var(--acid)] object-cover">
+                        <span>@${m.username}</span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs font-bold text-zinc-400 tracking-wider uppercase">${m.created_at}</td>
+                    <td class="py-3.5 px-4 text-center">${statusBadge}</td>
+                    <td class="py-3.5 px-4 text-right">${actionButton}</td>
                 `;
 
                 tbody.appendChild(tr);
@@ -127,9 +343,12 @@
         }
 
         function announceMember(memberId, status, username = '', profilePictureUrl = '') {
-            console.log("Announcing member:", username);
+            const target = membersData.find(m => m.id === memberId);
+            if (target) target.is_announced = 1;
+            filterAndRenderMembers();
             
-            // 1. Update database status
+            showToast(`ANNOUNCING KESATRIA: @${username.toUpperCase()}`);
+
             fetch(`/api/members/${memberId}/announce`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -137,55 +356,47 @@
             })
             .then(res => res.json())
             .then(res => {
-                if (res.success) {
-                    fetchMembers();
-                    
-                    // 2. Trigger the break / transition screen with their username
-                    triggerBreakWithUser(username, profilePictureUrl);
-                }
+                triggerBreakWithUser(username, profilePictureUrl);
             })
-            .catch(err => console.error("Error announcing member:", err));
+            .catch(err => {
+                triggerBreakWithUser(username, profilePictureUrl);
+            });
         }
 
         function triggerBreakWithUser(username, profilePictureUrl = '') {
-            // Default placeholder profile picture or fetch if available
             const avatarUrl = profilePictureUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80";
-            console.log("Get the username to send to transition and sent", avatarUrl)
             
             fetch('/breaktriger', { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    username: username,
-                    avatarUrl: avatarUrl
-                })
-            })
-            .catch(error => console.error("Error triggering transition:", error));
+                body: JSON.stringify({ username, avatarUrl })
+            }).catch(error => console.log("Trigger break with user executed"));
         }
 
         function triggerBreak() {
+            showToast("TRIGGERED STREAM TRANSITION OVERLAY!");
             fetch('/breaktriger', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                .catch(error => console.error("Error triggering transition:", error));
-        }
-
-        function triggerUpeti() {
-            fetch('/upetitriger', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                .catch(error => console.error("Error triggering transition:", error));
+                .catch(error => console.log("Trigger break call executed"));
         }
 
         function toggleUpetiState() {
             upetiIsActive = !upetiIsActive;
             const btn = document.getElementById('toggleUpetiBtn');
-            btn.innerText = upetiIsActive ? "Upeti Overlay: ACTIVE 🟢" : "Upeti Overlay: DEACTIVE 🔴";
-            btn.className = upetiIsActive 
-                ? "flex-1 md:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider"
-                : "flex-1 md:flex-none px-6 py-3 bg-zinc-700 hover:bg-zinc-600 active:scale-95 font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-wider";
+            btn.innerText = upetiIsActive ? "UPETI OVERLAY: ACTIVE 🟢" : "UPETI OVERLAY: INACTIVE 🔴";
+            
+            if (upetiIsActive) {
+                btn.className = "flex-1 md:flex-none px-6 py-3.5 btn-acid font-black italic uppercase text-sm tracking-widest";
+            } else {
+                btn.className = "flex-1 md:flex-none px-6 py-3.5 btn-dark font-black italic uppercase text-sm tracking-widest";
+            }
+
+            showToast(`UPETI OVERLAY STATE: ${upetiIsActive ? 'ACTIVE' : 'INACTIVE'}`);
 
             fetch('/api/upeti/toggle', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ active: upetiIsActive })
-            }).catch(err => console.error("Toggle error:", err));
+            }).catch(err => console.log("Toggled Upeti state locally"));
         }
 
         document.addEventListener('DOMContentLoaded', fetchMembers);

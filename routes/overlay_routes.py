@@ -18,7 +18,7 @@ def upeti_page():
 
 @overlay_bp.route("/upeti-transition")
 def upeti_transition_page():
-    return render_template("templates/transition/upeti-transition.html")
+    return render_template("templates/overlay/upeti-transition.html")
 
 @overlay_bp.route("/kaisars")
 def kaisars_page():
