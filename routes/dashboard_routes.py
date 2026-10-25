@@ -1,5 +1,6 @@
 import sqlite3
 
+from functools import wraps
 from flask import Blueprint, redirect, render_template, session, request, jsonify
 from controller.admin_controller import (
     get_admin_viewers_data,
@@ -41,6 +42,26 @@ def _render_dashboard(template):
 def get_profile():
     return _render_dashboard("templates/dashboard/profiles.html")
 
+def role_required(required_role=1):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            print(f"DEBUG SESSION -> user_id: {session.get('user_id')}, id_role: {session.get('id_role')}")
+            
+            if 'user_id' not in session:
+                return jsonify({"success": False, "message": "Unauthorized. Please login."}), 401
+            
+            user_role = session.get('id_role')
+            if user_role != required_role:
+                return jsonify({
+                    "success": False, 
+                    "message": f"Access denied! Required role: {required_role}, Your session role: {user_role}"
+                }), 403
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 
 @dashboard_bp.route("/dashboard/alerting")
 def dashboard_alerting():
@@ -60,39 +81,45 @@ def api_get_viewers():
     result = get_admin_viewers_data(request.args)
     return jsonify(result)
 
+# --- MUTATION / EDIT ROUTES (DIKUNCI: Wajib Role 1) ---
+
 @dashboard_bp.route("/api/admin/viewers/<int:viewer_id>/role", methods=["POST"])
+@role_required(1)
 def api_update_role(viewer_id):
-    """Updates a viewer's role ID in tb_viewers."""
+    """Mengubah role viewer (Hanya Role 1)."""
     data = request.get_json() or {}
     role_id = data.get("role_id")
     update_viewer_role(viewer_id, role_id)
-    return jsonify({"success": True})
+    return jsonify({"success": True, "message": "Role berhasil diperbarui!"})
 
 @dashboard_bp.route("/api/admin/viewers/<int:viewer_id>/toggle-member", methods=["POST"])
+@role_required(1)
 def api_toggle_member(viewer_id):
-    """Toggles a viewer's presence inside tb_members."""
+    """Menambah/menghapus member (Hanya Role 1)."""
     is_member = toggle_viewer_membership(viewer_id)
     return jsonify({"success": True, "is_member": is_member})
 
 @dashboard_bp.route("/api/admin/viewers/<int:viewer_id>/add-points", methods=["POST"])
+@role_required(1)
 def api_add_points(viewer_id):
-    """API endpoint to add points to a selected viewer."""
+    """Menambahkan poin ke viewer (Hanya Role 1)."""
     data = request.get_json() or {}
     points = int(data.get("points", 0))
     if points > 0:
         add_points_to_viewer(viewer_id, points)
-    return jsonify({"success": True})
+    return jsonify({"success": True, "message": "Poin berhasil ditambahkan!"})
 
 @dashboard_bp.route("/api/admin/roles", methods=["POST"])
+@role_required(1)
 def api_create_role():
-    """API endpoint to create a new role in tb_roles."""
+    """Membuat role baru di tb_roles (Hanya Role 1)."""
     data = request.get_json() or {}
     role_name = data.get("role_name", "").strip()
     if not role_name:
-        return jsonify({"success": False, "error": "Role name is required"}), 400
+        return jsonify({"success": False, "error": "Nama role wajib diisi!"}), 400
     
     try:
         create_role(role_name)
-        return jsonify({"success": True, "message": f"Role '{role_name}' created successfully"})
+        return jsonify({"success": True, "message": f"Role '{role_name}' berhasil dibuat!"})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400

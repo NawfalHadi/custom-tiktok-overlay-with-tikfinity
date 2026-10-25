@@ -56,7 +56,7 @@ def authenticate_user(email, raw_password):
     cursor = conn.cursor()
     try:
         cursor.execute("""
-            SELECT v.id, v.username, v.email, v.password, v.profile_picture_url, s.points 
+            SELECT v.id, v.username, v.email, v.password, v.profile_picture_url, v.id_role, s.points 
             FROM tb_viewers v
             LEFT JOIN tb_stats s ON v.id = s.id_viewer
             WHERE v.email = ?
@@ -69,6 +69,7 @@ def authenticate_user(email, raw_password):
                 "username": user['username'],
                 "email": user['email'],
                 "profile_picture_url": user['profile_picture_url'] or "https://via.placeholder.com/150",
+                "id_role": user['id_role'], 
                 "points": user['points'] if user['points'] is not None else 0
             }
         return None
