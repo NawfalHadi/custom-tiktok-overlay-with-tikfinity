@@ -1,20 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upeti Bumper Transition - Fullscreen</title>
+    <title>Upeti Bumper Transition - DGCB HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --ink: #07070a;
+            --bone: #f4f2ea;
+            --acid: #e6ff1a;
+            --cyan: #00f0ff;
+            --red: #ff2d3d;
+            --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+            --card-clip: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Oswald', sans-serif;
-            margin: 0;
-            overflow: hidden;
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
             background: transparent;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* CRT Scanline Overlay */
+        .scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
         }
 
         .fullscreen-container {
@@ -22,86 +44,87 @@
             height: 100vh;
             position: relative;
             overflow: hidden;
-            background: transparent;
         }
-        
+
+        /* Wipe Panel Layers */
         .wipe-panel {
-            width: 200vw;
-            height: 120vh;
-            left: -50vw;
-            top: -10vh;
+            width: 220vw;
+            height: 140vh;
+            left: -60vw;
+            top: -20vh;
             transform-origin: center;
-            transform: skewX(-15deg) translateX(-100%);
+            transform: skewX(-18deg) translateX(-110%);
             position: absolute;
         }
 
         @keyframes wipeDarkIn {
-            0% { transform: skewX(-15deg) translateX(-120%); }
-            12% { transform: skewX(-15deg) translateX(0%); }
-            82% { transform: skewX(-15deg) translateX(0%); }
-            95% { transform: skewX(-15deg) translateX(120%); }
-            100% { transform: skewX(-15deg) translateX(120%); }
+            0% { transform: skewX(-18deg) translateX(-110%); }
+            12% { transform: skewX(-18deg) translateX(0%); }
+            82% { transform: skewX(-18deg) translateX(0%); }
+            95% { transform: skewX(-18deg) translateX(110%); }
+            100% { transform: skewX(-18deg) translateX(110%); }
         }
 
-        @keyframes wipeEmeraldIn {
-            0%, 5% { transform: skewX(-15deg) translateX(-120%); }
-            17% { transform: skewX(-15deg) translateX(0%); }
-            77% { transform: skewX(-15deg) translateX(0%); }
-            90% { transform: skewX(-15deg) translateX(120%); }
-            100% { transform: skewX(-15deg) translateX(120%); }
+        @keyframes wipeAcidIn {
+            0%, 4% { transform: skewX(-18deg) translateX(-110%); }
+            16% { transform: skewX(-18deg) translateX(0%); }
+            78% { transform: skewX(-18deg) translateX(0%); }
+            90% { transform: skewX(-18deg) translateX(110%); }
+            100% { transform: skewX(-18deg) translateX(110%); }
         }
 
-        .animating .wipe-dark { animation: wipeDarkIn 3.5s linear forwards; }
-        .animating .wipe-emerald { animation: wipeEmeraldIn 3.5s linear forwards; }
+        .animating .wipe-dark { animation: wipeDarkIn 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animating .wipe-acid { animation: wipeAcidIn 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         @keyframes contentFade {
-            0%, 15% { opacity: 0; }
+            0%, 14% { opacity: 0; }
             18% { opacity: 1; }
-            74% { opacity: 1; }
-            77%, 100% { opacity: 0; }
+            75% { opacity: 1; }
+            78%, 100% { opacity: 0; }
         }
         .animating .content-layer { animation: contentFade 3.5s linear forwards; }
 
         @keyframes bannerExpand {
-            0%, 18% { transform: scaleX(0); opacity: 0; }
+            0%, 17% { transform: scaleX(0); opacity: 0; }
             21% { transform: scaleX(1); opacity: 1; }
             72% { transform: scaleX(1); opacity: 1; }
-            75%, 100% { transform: scaleX(0); opacity: 0; }
+            76%, 100% { transform: scaleX(0); opacity: 0; }
         }
         .animating .banner-bg { animation: bannerExpand 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         @keyframes profilePop {
-            0%, 19% { transform: scale(0) rotate(-45deg); opacity: 0; filter: blur(10px); }
-            23% { transform: scale(1.1) rotate(0deg); opacity: 1; filter: blur(0px); }
-            26% { transform: scale(1) rotate(0deg); opacity: 1; }
+            0%, 18% { transform: scale(0) rotate(-45deg); opacity: 0; filter: blur(10px); }
+            22% { transform: scale(1.1) rotate(0deg); opacity: 1; filter: blur(0px); }
+            25% { transform: scale(1) rotate(0deg); opacity: 1; }
             70% { transform: scale(1) rotate(0deg); opacity: 1; }
-            73%, 100% { transform: scale(0) rotate(45deg); opacity: 0;}
+            73%, 100% { transform: scale(0) rotate(45deg); opacity: 0; }
         }
         .animating .profile-container { animation: profilePop 3.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
 
         @keyframes textSlam {
-            0%, 21% { transform: scale(3) translateY(-20px); opacity: 0; filter: blur(15px); }
+            0%, 20% { transform: scale(3) translateY(-30px); opacity: 0; filter: blur(15px); }
             24% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0px); }
             70% { transform: scale(1.03) translateY(0); opacity: 1; filter: blur(0px); }
-            73%, 100% { transform: scale(0.6) translateY(20px); opacity: 0; filter: blur(10px); }
+            74%, 100% { transform: scale(0.6) translateY(30px); opacity: 0; filter: blur(10px); }
         }
         .animating .main-text { animation: textSlam 3.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
 
         @keyframes flashHit {
-            0%, 23% { opacity: 0; }
-            24% { opacity: 1; }
+            0%, 22% { opacity: 0; }
+            23% { opacity: 0.8; }
             28%, 100% { opacity: 0; }
         }
         .animating .hit-flash { animation: flashHit 3.5s linear forwards; }
 
         @keyframes lightSweep {
-            0%, 30% { left: -100%; opacity: 0; }
-            31% { opacity: 0.5; }
-            50% { left: 200%; opacity: 0.5; }
-            51%, 100% { left: 200%; opacity: 0; }
+            0%, 28% { left: -100%; opacity: 0; }
+            29% { opacity: 0.8; }
+            48% { left: 200%; opacity: 0.8; }
+            49%, 100% { left: 200%; opacity: 0; }
         }
         .animating .text-glare { animation: lightSweep 3.5s linear forwards; }
 
+        /* Ticker Animation */
         @keyframes tickerScroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -109,126 +132,202 @@
         .ticker-content {
             display: inline-flex;
             white-space: nowrap;
-            animation: tickerScroll 15s linear infinite;
+            animation: tickerScroll 12s linear infinite;
         }
 
+        /* Rotating HUD Geometry Ring */
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
-        .globe-ring-1 { animation: spin 20s linear infinite; }
-        .globe-ring-2 { animation: spin-reverse 15s linear infinite; }
+        .hud-ring-1 { animation: spin 25s linear infinite; }
+        .hud-ring-2 { animation: spin-reverse 18s linear infinite; }
 
-        .scanlines {
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
-            background-size: 100% 4px;
-            pointer-events: none;
+        /* Octagonal Avatar Frame Styling */
+        .avatar-oct-frame {
+            width: 140px;
+            height: 140px;
+            padding: 4px;
+            clip-path: var(--oct);
+            background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 50%, var(--cyan) 100%);
+            box-shadow: 0 0 30px rgba(230, 255, 26, 0.5);
         }
 
-        .glow-text-white { text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3); }
-        .glow-text-yellow { text-shadow: 0 0 15px rgba(250, 204, 21, 0.8), 0 0 30px rgba(234, 179, 8, 0.5); }
+        .avatar-oct-inner {
+            width: 100%;
+            height: 100%;
+            clip-path: var(--oct);
+            background: #000;
+        }
+
+        .hud-badge {
+            clip-path: var(--badge-clip);
+            font-style: italic;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .glow-acid { text-shadow: 0 0 15px rgba(230, 255, 26, 0.8), 0 0 30px rgba(230, 255, 26, 0.4); }
+        .glow-cyan { text-shadow: 0 0 15px rgba(0, 240, 255, 0.8), 0 0 30px rgba(0, 240, 255, 0.4); }
+        .glow-white { text-shadow: 0 0 12px rgba(255, 255, 255, 0.6); }
+
+        .btn-hud {
+            clip-path: var(--badge-clip);
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-hud:hover {
+            filter: drop-shadow(0 0 10px rgba(230, 255, 26, 0.6));
+            transform: translateY(-1px);
+        }
+        .btn-hud:active {
+            transform: translateY(1px) scale(0.96);
+        }
     </style>
 </head>
 <body class="w-full h-screen flex items-center justify-center">
 
     <div class="fullscreen-container">
+        
+        <!-- MAIN TRANSITION OVERLAY -->
         <div id="transition-overlay" class="absolute inset-0 z-50 overflow-hidden pointer-events-none hidden">
             
             <!-- DARK WIPE PANEL -->
-            <div class="wipe-panel wipe-dark bg-slate-950 border-r-[10px] border-emerald-600 shadow-[20px_0_50px_rgba(0,0,0,0.9)] z-10"></div>
+            <div class="wipe-panel wipe-dark bg-[#0b0b11] border-r-[8px] border-[var(--cyan)] shadow-[25px_0_60px_rgba(0,0,0,0.95)] z-10"></div>
             
-            <!-- EMERALD GRADIENT WIPE PANEL -->
-            <div class="wipe-panel wipe-emerald bg-gradient-to-r from-emerald-950 via-emerald-800 to-emerald-600 border-r-[15px] border-yellow-400 shadow-[30px_0_50px_rgba(0,0,0,0.95)] z-20">
-                <div class="absolute inset-0 scanlines opacity-50"></div>
+            <!-- ACID ACCENT GRADIENT WIPE PANEL -->
+            <div class="wipe-panel wipe-acid bg-gradient-to-r from-zinc-950 via-[#121408] to-[#252a02] border-r-[12px] border-[var(--acid)] shadow-[35px_0_70px_rgba(0,0,0,0.98)] z-20">
+                <div class="absolute inset-0 scanlines opacity-60"></div>
             </div>
 
             <!-- CONTENT LAYER -->
             <div class="content-layer absolute inset-0 z-30 flex flex-col items-center justify-center opacity-0">
                 
-                <div class="hit-flash absolute inset-0 bg-yellow-300 opacity-0 z-50 pointer-events-none mix-blend-overlay"></div>
+                <div class="hit-flash absolute inset-0 bg-[var(--acid)] opacity-0 z-50 pointer-events-none mix-blend-overlay"></div>
 
-                <!-- ROTATING GRAPHICS BACKDROP -->
-                <div class="absolute inset-0 flex items-center justify-center overflow-hidden opacity-25">
-                    <div class="globe-ring-1 absolute w-[60vh] h-[60vh] border-[2px] border-dashed border-yellow-400 rounded-full"></div>
-                    <div class="globe-ring-2 absolute w-[42vh] h-[42vh] border-[4px] border-dotted border-emerald-300 rounded-full"></div>
+                <!-- ROTATING HUD BACKDROP -->
+                <div class="absolute inset-0 flex items-center justify-center overflow-hidden opacity-30 pointer-events-none">
+                    <div class="hud-ring-1 absolute w-[65vh] h-[65vh] border-2 border-dashed border-[var(--acid)] rounded-full"></div>
+                    <div class="hud-ring-2 absolute w-[45vh] h-[45vh] border-4 border-dotted border-[var(--cyan)] rounded-full"></div>
                 </div>
 
-                <!-- TOP TICKER -->
-                <div class="absolute top-[22%] w-full h-9 bg-black/90 border-t-2 border-b-2 border-yellow-400 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-left">
-                    <div class="ticker-content text-yellow-400 font-bold tracking-[0.2em] text-sm uppercase">
-                        UPETI COMMAND NETWORK /// SPECIAL TRIBUTE DISPATCHED /// LIVE SUPPORTER BROADCAST /// UPETI COMMAND NETWORK /// 
+                <!-- TOP TICKER BANNER -->
+                <div class="absolute top-[22%] w-full h-10 bg-black/90 border-y-2 border-[var(--acid)] flex items-center overflow-hidden shadow-2xl transform -skew-x-12 origin-left z-40">
+                    <div class="ticker-content text-[var(--acid)] font-black italic tracking-[0.25em] text-sm uppercase">
+                        ⚡ KERAJAAN DGCB /// PROTOKOL UPETI RESMI /// SPECIAL TRIBUTE DISPATCHED /// KERAJAAN DGCB /// PROTOKOL UPETI RESMI /// SPECIAL TRIBUTE DISPATCHED ///
                     </div>
                 </div>
 
-                <!-- PROFILE CIRCLE SECTION -->
-                <div class="profile-container relative z-40 mb-6 flex flex-col items-center opacity-0">
-                    <div class="relative w-40 h-40 rounded-full p-1 bg-gradient-to-tr from-emerald-500 via-yellow-400 to-amber-300 shadow-[0_0_35px_rgba(250,204,21,0.7)]">
-                        <div class="w-full h-full rounded-full bg-slate-950 p-1 flex items-center justify-center overflow-hidden border-2 border-slate-900">
-                            <img id="user-profile-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" alt="User Profile" class="w-full h-full object-cover rounded-full filter contrast-110">
+                <!-- PROFILE AVATAR SECTION -->
+                <div class="profile-container relative z-40 mb-4 flex flex-col items-center opacity-0">
+                    <div class="avatar-oct-frame relative">
+                        <div class="avatar-oct-inner">
+                            <img id="user-profile-img" 
+                                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" 
+                                 alt="Avatar Kesatria" 
+                                 class="w-full h-full object-cover grayscale contrast-125">
                         </div>
-                        <div class="absolute bottom-1 right-1 bg-emerald-600 text-white text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full border-2 border-black tracking-wider shadow-md animate-pulse">
+                        <div class="hud-badge absolute -bottom-3 right-0 left-0 text-center bg-[var(--acid)] text-black text-[11px] font-black italic px-2 py-0.5 tracking-wider shadow-lg">
                             TOP UPETI!
                         </div>
                     </div>
                 </div>
 
-                <!-- MAIN BANNER TEXT -->
+                <!-- MAIN BANNER TEXT SECTION -->
                 <div class="relative w-full flex items-center justify-center z-40">
-                    <div class="banner-bg absolute w-[110%] h-[120px] bg-slate-950 border-y-4 border-yellow-400 shadow-[0_0_60px_rgba(0,0,0,0.9)] origin-center skew-x-[-6deg]"></div>
+                    <div class="banner-bg absolute w-[110%] h-[130px] bg-zinc-950/95 border-y-4 border-[var(--acid)] shadow-[0_0_80px_rgba(0,0,0,0.95)] origin-center skew-x-[-8deg]"></div>
                     
                     <div class="main-text relative z-10 flex flex-col items-center">
-                        <div class="relative overflow-hidden px-6 py-1">
-                            <div class="text-5xl font-black italic tracking-tighter leading-none flex flex-col items-center gap-1">
-                                <span class="text-white glow-text-white uppercase">PEMBERI UPETI</span>
-                                <span class="text-yellow-400 glow-text-yellow uppercase">TELAH DATANG</span>
+                        <div class="relative overflow-hidden px-8 py-1">
+                            <div class="text-5xl sm:text-6xl font-black italic tracking-tight leading-none flex flex-col items-center gap-0">
+                                <span class="text-white glow-white uppercase">PEMBERI UPETI</span>
+                                <span class="text-[var(--acid)] glow-acid uppercase">TELAH DATANG</span>
                             </div>
-                            <div class="text-glare absolute top-0 w-28 h-[150%] bg-white/40 transform skew-x-[-30deg] blur-md pointer-events-none"></div>
+                            <div class="text-glare absolute top-0 w-32 h-[180%] bg-white/40 transform skew-x-[-30deg] blur-md pointer-events-none"></div>
                         </div>
-                        <div id="username-tag" class="bg-emerald-600 text-white px-5 py-1 text-sm font-black tracking-widest uppercase mt-2 z-20 shadow-lg border border-yellow-400">
+
+                        <!-- USERNAME BADGE -->
+                        <div id="username-tag" class="hud-badge bg-[var(--cyan)] text-black px-6 py-1 text-base font-black italic tracking-widest uppercase mt-2 z-20 shadow-xl border border-white">
                             @USERNAME
                         </div>
                     </div>
                 </div>
 
-                <!-- BOTTOM TICKER -->
-                <div class="absolute bottom-[22%] w-full h-9 bg-black/90 border-t-2 border-b-2 border-emerald-500 flex items-center overflow-hidden shadow-lg transform -skew-x-12 origin-right">
-                    <div class="ticker-content text-emerald-300 font-bold tracking-[0.2em] text-sm uppercase" style="animation-direction: reverse;">
-                        STAND BY FOR STREAM UPDATE /// RECORD REGISTERED /// STAND BY FOR STREAM UPDATE /// RECORD REGISTERED /// 
+                <!-- BOTTOM TICKER BANNER -->
+                <div class="absolute bottom-[22%] w-full h-10 bg-black/90 border-y-2 border-[var(--cyan)] flex items-center overflow-hidden shadow-2xl transform -skew-x-12 origin-right z-40">
+                    <div class="ticker-content text-[var(--cyan)] font-black italic tracking-[0.25em] text-sm uppercase" style="animation-direction: reverse;">
+                        STAND BY FOR LIVE TRANSMISSION /// RECORD REGISTERED /// KERAJAAN DGCB HUD /// STAND BY FOR LIVE TRANSMISSION /// RECORD REGISTERED /// 
                     </div>
                 </div>
 
             </div>
         </div>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        const socket = io({ transports: ['polling'] });
+        // Check for OBS overlay query string parameter (?overlay)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('overlay')) {
+            const ctrlBar = document.getElementById('control-bar');
+            if (ctrlBar) ctrlBar.style.display = 'none';
+        }
 
-        const overlay = document.getElementById('transition-overlay');
         let isAnimating = false;
+        const overlay = document.getElementById('transition-overlay');
 
-        socket.on('trigger_upeti_transition', (data) => {
+        const DEMO_USERS = [
+            { username: 'Baginda_DGCB', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80' },
+            { username: 'Sultan_Muda', avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&auto=format&fit=crop&q=80' },
+            { username: 'Nawlhadaiff', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80' },
+            { username: 'Pangeran_Live', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80' }
+        ];
+
+        function triggerTransition(username, avatarUrl) {
             if (isAnimating) return;
             isAnimating = true;
 
-            if (data && data.avatarUrl) {
-                document.getElementById('user-profile-img').src = data.avatarUrl;
+            if (avatarUrl) {
+                document.getElementById('user-profile-img').src = avatarUrl;
             }
-
-            if (data && data.username) {
-                document.getElementById('username-tag').innerText = `@${data.username.toUpperCase()}`;
+            if (username) {
+                document.getElementById('username-tag').innerText = `@${username.toUpperCase()}`;
             }
 
             overlay.classList.remove('hidden');
             overlay.classList.remove('animating');
-            void overlay.offsetWidth; // Force reflow
+            void overlay.offsetWidth; // Force CSS Reflow
             overlay.classList.add('animating');
 
             setTimeout(() => {
                 overlay.classList.remove('animating');
                 overlay.classList.add('hidden');
                 isAnimating = false;
-            }, 3600); 
+            }, 3600);
+        }
+
+        function triggerRandomDemo() {
+            const randomUser = DEMO_USERS[Math.floor(Math.random() * DEMO_USERS.length)];
+            triggerTransition(randomUser.username, randomUser.avatar);
+        }
+
+        // Keybindings (Spacebar = Trigger)
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerRandomDemo();
+            }
         });
+
+        // Socket.io Real-time Event Listener
+        try {
+            const socket = io({ transports: ['polling', 'websocket'] });
+            socket.on('trigger_upeti_transition', (data) => {
+                if (data) {
+                    triggerTransition(data.username, data.avatarUrl);
+                }
+            });
+        } catch (err) {
+            console.log('Socket fallback mode active.');
+        }
     </script>
 </body>
 </html>

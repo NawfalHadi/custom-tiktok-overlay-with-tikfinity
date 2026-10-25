@@ -1,22 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upeti Broadcast Overlay</title>
+    <title>Upeti Broadcast Overlay - DGCB HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <style>
-        body {
-            font-family: 'Oswald', sans-serif;
-            margin: 0;
-            overflow: hidden;
-            background: transparent;
+        :root {
+            --ink: #07070a;
+            --bone: #f4f2ea;
+            --acid: #e6ff1a;
+            --cyan: #00f0ff;
+            --red: #ff2d3d;
+            --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+            --card-clip: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+            --ribbon-clip: polygon(0 0, 100% 0, 92% 100%, 0 100%);
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: transparent;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Ticker Animation */
         @keyframes tickerScroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -24,98 +40,157 @@
         .ticker-content {
             display: inline-flex;
             white-space: nowrap;
-            animation: tickerScroll 15s linear infinite;
+            animation: tickerScroll 12s linear infinite;
         }
 
-        /* Attention bounce animation for the gift badge */
+        /* Octagonal Profile Avatar Styling */
+        .avatar-oct-frame {
+            width: 72px;
+            height: 72px;
+            padding: 3px;
+            clip-path: var(--oct);
+            background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 50%, var(--cyan) 100%);
+            box-shadow: 0 0 20px rgba(230, 255, 26, 0.4);
+            flex-shrink: 0;
+        }
+
+        .avatar-oct-inner {
+            width: 100%;
+            height: 100%;
+            clip-path: var(--oct);
+            background: #000;
+        }
+
+        /* Polygon Ribbons & Badges */
+        .hud-badge {
+            clip-path: var(--badge-clip);
+            font-style: italic;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .hud-ribbon {
+            clip-path: var(--ribbon-clip);
+        }
+
+        /* Gift Badge Pulse Bounce */
         @keyframes badgeBounce {
             0% { transform: scale(1); }
             30% { transform: scale(1.3) rotate(12deg); }
             60% { transform: scale(0.9) rotate(-6deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
-        .badge-pulse { animation: badgeBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .badge-pulse { animation: badgeBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        .btn-hud {
+            clip-path: var(--badge-clip);
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-hud:hover {
+            filter: drop-shadow(0 0 10px rgba(230, 255, 26, 0.6));
+            transform: translateY(-1px);
+        }
+        .btn-hud:active {
+            transform: translateY(1px) scale(0.96);
+        }
     </style>
 </head>
-<body class="w-screen h-screen flex gap-4 items-end justify-start p-8 bg-transparent">
+<body class="w-screen h-screen flex flex-col justify-end items-start p-8">
 
-    <!-- PERSISTENT UPETI WIDGET (STREAM OVERLAY BOTTOM BAR) -->
-    <div id="upeti-widget" class="relative flex flex-col w-[620px] gap-1 transition-all duration-500">
+    <!-- MAIN UPETI GIFTING WIDGET (OVERLAY BOTTOM BAR) -->
+    <div id="upeti-widget" class="relative flex flex-col w-[600px] gap-1 transition-all duration-500 transform opacity-100 scale-100">
         
-        <!-- USER PROFILE IMAGE MATCHING WIDGET HEIGHT -->
-        <div class="relative h-[92px] w-[80px] bg-slate-950 border-4 border-emerald-500 rounded-xl shadow-2xl overflow-hidden flex justify-center items-center shrink-0 transform skew-x-[6deg]">
-            <img id="user-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" alt="Profile" class="h-full w-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-40"></div>
-            <div class="absolute bottom-1 bg-emerald-600 text-white text-[8px] font-black uppercase px-1 py-0.5 rounded shadow border border-yellow-400">
-                SUPPORTER
-            </div>
-        </div>
+        <!-- CRT SCANLINE OVERLAY -->
+        <div class="absolute inset-0 scanlines opacity-40 z-50 pointer-events-none"></div>
 
         <!-- TOP RUNNING TEXT TICKER -->
-        <div class="w-full h-7 bg-emerald-950/95 border-t border-b border-yellow-400 flex items-center overflow-hidden shadow-xl transform skew-x-6">
-            <div class="ticker-content text-yellow-400 font-bold tracking-[0.2em] text-xs uppercase">
-                UPETI COMMAND NETWORK // SPECIAL TRIBUTE DISPATCHED // LIVE CONTRIBUTOR STREAM // UPETI COMMAND NETWORK // 
+        <div class="w-full h-6 bg-black/95 border-t border-b border-[var(--acid)] flex items-center overflow-hidden shadow-xl transform -skew-x-12 origin-left">
+            <div class="ticker-content text-[var(--acid)] font-black italic tracking-[0.25em] text-xs uppercase">
+                ⚡ UPETI PROTOCOL NETWORK /// SPECIAL TRIBUTE DISPATCHED /// LIVE CONTRIBUTOR STREAM /// KERAJAAN DGCB /// UPETI PROTOCOL NETWORK ///
             </div>
         </div>
 
-        <!-- MAIN LAYOUT BAR -->
-        <div class="relative flex items-stretch gap-2 w-full h-16">
+        <!-- MAIN CONTENT BAR -->
+        <div class="relative flex items-center gap-3 w-full h-20 bg-zinc-950/90 border-y-2 border-[var(--acid)] px-3 shadow-2xl transform -skew-x-12 origin-left">
             
-           <!-- LEFT LOGO BLOCK -->
-            <div class="relative bg-gradient-to-tr from-emerald-600 to-emerald-400 text-black px-6 flex flex-col justify-center items-center font-black italic tracking-tighter skew-x-[6deg] shadow-lg border-2 border-yellow-400 shrink-0">
-                <span class="text-[10px] tracking-widest uppercase leading-none text-emerald-950">UPETI</span>
-                <span class="text-2xl leading-none text-white">RECORDS</span>
+            <!-- OCTAGONS AVATAR BLOCK -->
+            <div class="relative z-20 transform skew-x-12 -ml-1">
+                <div class="avatar-oct-frame relative">
+                    <div class="avatar-oct-inner">
+                        <img id="user-avatar-img" 
+                             src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" 
+                             alt="Avatar" class="w-full h-full object-cover grayscale contrast-125">
+                    </div>
+                    <div class="hud-badge absolute -bottom-2 -right-1 bg-[var(--acid)] text-black text-[9px] font-black italic px-1.5 py-0.2 tracking-wider shadow-md">
+                        SUPPORTER
+                    </div>
+                </div>
             </div>
 
-            <!-- CENTER TEXT BLOCK -->
-            <div class="flex-1 bg-slate-950/95 border-y-2 border-emerald-500 flex items-center px-6 skew-x-[6deg] shadow-lg">
-                <div id="user-title" class="text-yellow-400 font-extrabold text-lg tracking-wide uppercase truncate">
-                    @PEMENTOLAN <span class="text-white font-normal">MENGIRIMKAN UPETI</span>
+            <!-- BRAND BADGE BLOCK -->
+            <div class="hud-ribbon bg-gradient-to-r from-[var(--acid)] to-yellow-400 text-black px-4 py-2 flex flex-col justify-center items-center font-black italic tracking-tight transform skew-x-0 shadow-lg border-r-2 border-black shrink-0">
+                <span class="text-[9px] tracking-widest uppercase leading-none text-zinc-900">UPETI</span>
+                <span class="text-xl leading-none text-black">RECORDS</span>
+            </div>
+
+            <!-- CENTER USERNAME & ACTION TEXT -->
+            <div class="flex-1 min-w-0 transform skew-x-12 pr-4">
+                <div id="user-title" class="text-white font-black italic text-lg tracking-wide uppercase truncate leading-tight">
+                    <span id="username-display" class="text-[var(--acid)]">@PEMENTOLAN</span> MENGIRIMKAN UPETI
+                </div>
+                <div class="text-[10px] font-black italic tracking-widest text-zinc-400 uppercase">
+                    STATUS: <span class="text-[var(--cyan)]">VERIFIED TRIBUTE</span>
                 </div>
             </div>
 
             <!-- RIGHT GIFT BADGE -->
-            <div id="gift-badge-container" class="relative -ml-8 z-30 flex items-center justify-center shrink-0">
-                <div class="relative w-16 h-16 flex items-center justify-center bg-gradient-to-tr from-yellow-500 via-yellow-400 to-amber-300 text-black rounded-full shadow-[0_0_20px_rgba(250,204,21,0.9)] border-3 border-yellow-400">
-                    <div class="absolute inset-1 rounded-full flex items-center justify-center bg-black/50 overflow-hidden">
-                        <img id="gift-icon-img" src="https://img.icons8.com/color/96/gift.png" alt="Gift" class="w-9 h-9 object-contain">
-                    </div>
-                    <div class="absolute -bottom-1 -right-1 bg-red-600 text-white font-black text-xs px-2 py-0.5 rounded-full border-2 border-black shadow-lg">
+            <div id="gift-badge-container" class="relative z-30 transform skew-x-12 shrink-0 mr-2">
+                <div class="relative w-14 h-14 flex items-center justify-center bg-zinc-950 border-2 border-[var(--acid)] shadow-[0_0_20px_rgba(230,255,26,0.5)]" style="clip-path: var(--oct);">
+                    <img id="gift-icon-img" src="https://img.icons8.com/color/96/gift.png" alt="Gift Icon" class="w-8 h-8 object-contain">
+                    <div class="hud-badge absolute -bottom-1 -right-1 bg-[var(--red)] text-white font-black italic text-xs px-2 py-0.5 border border-black shadow-lg">
                         <span id="gift-count-display">x1</span>
                     </div>
                 </div>
             </div>
+
         </div>
+
+        <!-- BOTTOM TICKER BANNER -->
+        <div class="w-full h-5 bg-black/95 border-b border-[var(--cyan)] flex items-center overflow-hidden shadow-xl transform -skew-x-12 origin-left">
+            <div class="ticker-content text-[var(--cyan)] font-black italic tracking-[0.25em] text-[10px] uppercase" style="animation-direction: reverse;">
+                STAND BY FOR LIVE TRANSMISSION /// RECORD REGISTERED /// DGCB HUD OVERLAY /// STAND BY FOR LIVE TRANSMISSION /// 
+            </div>
+        </div>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        const socket = io({ transports: ['polling'] });
+        // OBS Overlay query parameter auto-hide check
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('overlay')) {
+            const ctrlBar = document.getElementById('control-bar');
+            if (ctrlBar) ctrlBar.style.display = 'none';
+        }
 
-        // Handle Persistent Bar Visibility State & Data Sync
-        socket.on('update_upeti_state', (state) => {
-            const container = document.getElementById('upeti-widget');
-            if (container) {
-                if (state.active) {
-                    container.style.opacity = '1';
-                    container.style.pointerEvents = 'auto';
-                } else {
-                    container.style.opacity = '0';
-                    container.style.pointerEvents = 'none';
-                }
-            }
-            updateData(state);
-        });
+        let isWidgetActive = true;
+        const widget = document.getElementById('upeti-widget');
+
+        const DEMO_GIFTS = [
+            { username: 'PEMENTOLAN', giftCount: 'x1', icon: 'https://img.icons8.com/color/96/gift.png', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80' },
+            { username: 'SULTAN_DGCB', giftCount: 'x5', icon: 'https://img.icons8.com/color/96/diamond.png', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80' },
+            { username: 'BAGINDA_LIVE', giftCount: 'x10', icon: 'https://img.icons8.com/color/96/fire-element.png', avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&auto=format&fit=crop&q=80' }
+        ];
 
         function updateData(data) {
             if (data.username) {
-                document.getElementById('user-title').innerHTML = `@${data.username.toUpperCase()} <span class="text-white font-normal">MENGIRIMKAN UPETI</span>`;
+                document.getElementById('username-display').innerText = `@${data.username.toUpperCase()}`;
             }
             if (data.avatarUrl) {
                 document.getElementById('user-avatar-img').src = data.avatarUrl;
             }
-            if (data.giftCount) {
-                document.getElementById('gift-count-display').innerText = `x${data.giftCount}`;
+            if (data.giftCount != null) {
+                document.getElementById('gift-count-display').innerText = typeof data.giftCount === 'number' ? `x${data.giftCount}` : data.giftCount;
             }
             if (data.giftIconUrl) {
                 document.getElementById('gift-icon-img').src = data.giftIconUrl;
@@ -124,8 +199,44 @@
             // Trigger bounce animation on the gift badge
             const badge = document.getElementById('gift-badge-container');
             badge.classList.remove('badge-pulse');
-            void badge.offsetWidth;
+            void badge.offsetWidth; // Reflow
             badge.classList.add('badge-pulse');
+        }
+
+        function toggleWidgetState(forceState) {
+            isWidgetActive = forceState !== undefined ? forceState : !isWidgetActive;
+            if (isWidgetActive) {
+                widget.style.opacity = '1';
+                widget.style.transform = 'translateY(0)';
+            } else {
+                widget.style.opacity = '0';
+                widget.style.transform = 'translateY(30px)';
+            }
+        }
+
+        function triggerDemoGift() {
+            toggleWidgetState(true);
+            const randomDemo = DEMO_GIFTS[Math.floor(Math.random() * DEMO_GIFTS.length)];
+            updateData({
+                username: randomDemo.username,
+                giftCount: randomDemo.giftCount,
+                giftIconUrl: randomDemo.icon,
+                avatarUrl: randomDemo.avatar
+            });
+        }
+
+        // Socket.io Integration
+        try {
+            const socket = io({ transports: ['polling', 'websocket'] });
+
+            socket.on('update_upeti_state', (state) => {
+                if (state) {
+                    toggleWidgetState(state.active !== false);
+                    updateData(state);
+                }
+            });
+        } catch (e) {
+            console.log('Socket fallback mode active');
         }
     </script>
 </body>
