@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Control Panel // Admin HUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen p-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-zinc-800 pb-4 gap-4">
+            <div>
+                <h1 class="text-2xl font-black tracking-wider text-cyan-400 uppercase">// Database Control Panel</h1>
+                <p class="text-xs text-zinc-500 mt-1">Full management of viewers, stats, memberships, and roles.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">System Online</span>
+            </div>
+        </div>
+
+        <!-- Toolbar: Search, Per Page & Filters -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center shadow-lg">
+            
+            <!-- Search & Rows -->
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+                <input type="text" id="searchInput" placeholder="Search username or email..." oninput="handleSearch()"
+                       class="bg-zinc-950 text-sm px-4 py-2.5 rounded-xl border border-zinc-800 focus:outline-none focus:border-cyan-500 text-white w-full md:w-72 transition-all">
+                
+                <select id="perPageSelect" onchange="changePerPage()" class="bg-zinc-950 text-sm px-3 py-2.5 rounded-xl border border-zinc-800 text-zinc-300 focus:outline-none focus:border-cyan-500">
+                    <option value="10">10 Rows</option>
+                    <option value="25">25 Rows</option>
+                    <option value="50">50 Rows</option>
+                </select>
+            </div>
+
+            <!-- Filter Toggles -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <button id="unownedBtn" onclick="toggleUnownedFilter()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-zinc-700">
+                    Unowned Accounts Only
+                </button>
+                <button id="memberBtn" onclick="toggleMemberFilter()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-zinc-700">
+                    Members Only
+                </button>
+            </div>
+        </div>
+
+        <!-- Data Table Container -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-zinc-300">
+                    <thead class="bg-zinc-950 text-zinc-400 uppercase text-xs border-b border-zinc-800">
+                        <tr>
+                            <th onclick="sortTable('id')" class="py-3.5 px-4 cursor-pointer hover:text-cyan-400 transition-colors">ID ↕</th>
+                            <th onclick="sortTable('username')" class="py-3.5 px-4 cursor-pointer hover:text-cyan-400 transition-colors">Viewer / Username ↕</th>
+                            <th class="py-3.5 px-4">Account Ownership</th>
+                            <th onclick="sortTable('points')" class="py-3.5 px-4 cursor-pointer hover:text-cyan-400 transition-colors">Points (tb_stats) ↕</th>
+                            <th class="py-3.5 px-4">Member Status</th>
+                            <th class="py-3.5 px-4">Role</th>
+                            <th onclick="sortTable('created_at')" class="py-3.5 px-4 cursor-pointer hover:text-cyan-400 transition-colors">Joined Date ↕</th>
+                            <th class="py-3.5 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="viewersTableBody" class="divide-y divide-zinc-800/60">
+                        <!-- Loaded dynamically via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Footer -->
+            <div class="bg-zinc-950 px-6 py-4 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                <span id="pageInfo" class="text-xs text-zinc-500 font-medium">Showing 0 entries</span>
+                <div class="flex items-center gap-2">
+                    <button id="prevBtn" onclick="prevPage()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-800 rounded-xl text-xs font-bold text-cyan-400 transition-all">
+                        &larr; PREV
+                    </button>
+                    <span id="currentPageDisplay" class="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-amber-400">1</span>
+                    <button id="nextBtn" onclick="nextPage()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-800 rounded-xl text-xs font-bold text-cyan-400 transition-all">
+                        NEXT &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let state = {
+            page: 1,
+            per_page: 10,
+            search: '',
+            sort_by: 'created_at',
+            sort_dir: 'desc',
+            unowned_only: '0',
+            member_only: 'all'
+        };
+
+        let availableRoles = [];
+        let searchTimeout = null;
+
+        async function fetchViewers() {
+            try {
+                const params = new URLSearchParams(state);
+                const res = await fetch(`/api/admin/viewers?${params.toString()}`);
+                const result = await res.json();
+
+                availableRoles = result.roles || [];
+                renderTable(result.data);
+                renderPagination(result.pagination);
+            } catch (err) {
+                console.error("Failed to fetch viewers:", err);
+            }
+        }
+
+        function renderTable(viewers) {
+            const tbody = document.getElementById('viewersTableBody');
+            tbody.innerHTML = '';
+
+            if (!Array.isArray(viewers) || viewers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-zinc-500">No viewers found matching your criteria.</td></tr>`;
+                return;
+            }
+
+            viewers.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-800/40 transition-colors";
+
+                const avatar = v.profile_picture_url || 'https://via.placeholder.com/36';
+                
+                // Account ownership badge
+                const ownershipBadge = v.is_unowned 
+                    ? `<span class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-[10px] font-bold">Unowned</span>` 
+                    : `<span class="px-2 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-md text-[10px] font-bold">Registered Account</span>`;
+
+                // Member badge
+                const memberBadge = v.is_member 
+                    ? `<span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[10px] font-bold">MEMBER</span>` 
+                    : `<span class="px-2 py-1 bg-zinc-800 text-zinc-500 rounded-md text-[10px] font-bold">NON-MEMBER</span>`;
+
+                // Role Dropdown Options
+                let roleOptions = availableRoles.map(r => 
+                    `<option value="${r.id}" ${r.id === v.id_role ? 'selected' : ''}>${r.roles_name}</option>`
+                ).join('');
+                roleOptions = `<option value="">Default Viewer</option>` + roleOptions;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono text-zinc-500">#${v.id}</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${avatar}" class="w-8 h-8 rounded-lg border border-zinc-700 object-cover" alt="avatar" onerror="this.src='https://via.placeholder.com/36'">
+                            <div>
+                                <div class="font-bold text-white">${v.username}</div>
+                                <div class="text-xs text-zinc-500">${v.email || 'No email attached'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">${ownershipBadge}</td>
+                    <td class="py-3 px-4 font-bold text-amber-400">${Number(v.points).toLocaleString()} PTS</td>
+                    <td class="py-3 px-4">${memberBadge}</td>
+                    <td class="py-3 px-4">
+                        <select onchange="updateRole(${v.id}, this.value)" class="bg-zinc-950 text-xs px-2.5 py-1.5 rounded-lg border border-zinc-800 text-zinc-300 focus:outline-none focus:border-cyan-500">
+                            ${roleOptions}
+                        </select>
+                    </td>
+                    <td class="py-3 px-4 text-xs text-zinc-500">${v.created_at}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="toggleMember(${v.id})" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all border border-zinc-700">
+                            ${v.is_member ? 'Revoke Member' : 'Make Member'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPagination(pg) {
+            document.getElementById('currentPageDisplay').innerText = pg.page;
+            const start = pg.total_items > 0 ? (pg.page - 1) * pg.per_page + 1 : 0;
+            const end = Math.min(pg.page * pg.per_page, pg.total_items);
+            document.getElementById('pageInfo').innerText = `Showing ${start} to ${end} of ${pg.total_items} entries`;
+
+            document.getElementById('prevBtn').disabled = pg.page <= 1;
+            document.getElementById('nextBtn').disabled = pg.page >= pg.total_pages;
+        }
+
+        function sortTable(column) {
+            if (state.sort_by === column) {
+                state.sort_dir = state.sort_dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.sort_by = column;
+                state.sort_dir = 'asc';
+            }
+            fetchViewers();
+        }
+
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                state.search = document.getElementById('searchInput').value;
+                state.page = 1;
+                fetchViewers();
+            }, 300);
+        }
+
+        function toggleUnownedFilter() {
+            const btn = document.getElementById('unownedBtn');
+            state.unowned_only = state.unowned_only === '1' ? '0' : '1';
+            
+            if (state.unowned_only === '1') {
+                btn.className = "px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-red-500 shadow-lg shadow-red-900/20";
+            } else {
+                btn.className = "px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-zinc-700";
+            }
+
+            state.page = 1;
+            fetchViewers();
+        }
+
+        function toggleMemberFilter() {
+            const btn = document.getElementById('memberBtn');
+            state.member_only = state.member_only === 'yes' ? 'all' : 'yes';
+
+            if (state.member_only === 'yes') {
+                btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-emerald-500 shadow-lg shadow-emerald-900/20";
+            } else {
+                btn.className = "px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-zinc-700";
+            }
+
+            state.page = 1;
+            fetchViewers();
+        }
+
+        function changePerPage() {
+            state.per_page = parseInt(document.getElementById('perPageSelect').value);
+            state.page = 1;
+            fetchViewers();
+        }
+
+        function prevPage() { if (state.page > 1) { state.page--; fetchViewers(); } }
+        function nextPage() { state.page++; fetchViewers(); }
+
+        async function updateRole(viewerId, roleId) {
+            await fetch(`/api/admin/viewers/${viewerId}/role`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role_id: roleId ? parseInt(roleId) : null })
+            });
+            fetchViewers();
+        }
+
+        async function toggleMember(viewerId) {
+            await fetch(`/api/admin/viewers/${viewerId}/toggle-member`, { method: 'POST' });
+            fetchViewers();
+        }
+
+        // Initial Load on Page Open
+        document.addEventListener('DOMContentLoaded', fetchViewers);
+    </script>
+</body>
+</html>

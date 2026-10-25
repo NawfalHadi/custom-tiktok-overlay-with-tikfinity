@@ -39,6 +39,7 @@ def login():
         if user:
             session["user_id"] = user["id"]
             session["username"] = user["username"]
+            session["id_roles"] = user.get("id_roles", None)
             return jsonify({"success": True, "message": "Login Berhasil!", "redirect": "/dashboard"}), 200
 
         return jsonify({"success": False, "message": "Email atau Password salah!"}), 401
