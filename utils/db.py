@@ -31,6 +31,17 @@ def find_viewer(connection, username):
         (username,),
     ).fetchone()
 
+def find_viewer_detail(connection, username):
+    """Return detailed information about a viewer, including their points."""
+    return connection.execute(
+        """
+        SELECT v.id, v.username, v.profile_picture_url, s.points
+        FROM tb_viewers AS v
+        JOIN tb_stats AS s ON v.id = s.id_viewer
+        WHERE LOWER(v.username) = LOWER(?)
+        """,
+        (username,),
+    ).fetchone()
 
 def create_viewer(connection, username, profile_url):
     """Insert a viewer and their stats row. Returns the new viewer id."""

@@ -26,3 +26,6 @@ DAILY_POINT_REWARD = 250
 WATCH_TIME_INTERVAL = 300   # 5 minutes
 WATCH_TIME_REWARD = 20
 ACTIVITY_TIMEOUT = 900      # 15 minutes
+
+# Cooldown Message Process
+USER_COOLDOWN = 10
