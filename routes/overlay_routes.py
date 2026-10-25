@@ -2,6 +2,9 @@ from flask import Blueprint, render_template
 
 overlay_bp = Blueprint("overlay", __name__)
 
+@overlay_bp.route("/")
+def overlay_home():
+    return render_template("templates/scene/home.html")
 
 @overlay_bp.route("/control")
 def control_panel():

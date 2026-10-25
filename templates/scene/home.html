@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kerajaan DGCB - Cyber HUD Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  :root {
+    --ink: #07070a;
+    --panel: #0b0b11;
+    --bone: #f4f2ea;
+    --muted: #9a9aa8;
+    --dim: #6b6b7a;
+    --acid: #e6ff1a;
+    --red: #ff2d3d;
+    --cyan: #00f0ff;
+    --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+    --card-clip: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+    --slant: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+    --btn-clip: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+    --banner-clip: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  a { color: inherit; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 16px 48px;
+    overflow-x: hidden;
+    font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+    color: var(--bone);
+    background-color: var(--ink);
+    background-image:
+      radial-gradient(circle at 50% -10%, rgba(230, 255, 26, .1), transparent 55%),
+      linear-gradient(rgba(230, 255, 26, .04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(230, 255, 26, .04) 1px, transparent 1px);
+    background-size: auto, 32px 32px, 32px 32px;
+  }
+
+  /* ---------- Card shell ---------- */
+  .hud-wrap {
+    width: 100%;
+    max-width: 440px;
+    /* Shadow goes on a wrapper because clip-path would cut it off the card itself */
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, .7));
+    animation: rise .6s cubic-bezier(.2, .8, .2, 1) both;
+  }
+
+  .hud-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 20px 24px;
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, .02) 0 1px, transparent 1px 3px),
+      var(--panel);
+    clip-path: var(--card-clip);
+  }
+  .hud-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: var(--acid);
+  }
+  .hud-card > * { animation: rise .5s cubic-bezier(.2, .8, .2, 1) both; }
+  .hud-card > :nth-child(2) { animation-delay: .06s; }
+  .hud-card > :nth-child(3) { animation-delay: .12s; }
+  .hud-card > :nth-child(4) { animation-delay: .18s; }
+  .hud-card > :nth-child(5) { animation-delay: .24s; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+  }
+  .live {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--acid);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--acid);
+    box-shadow: 0 0 10px var(--acid);
+    animation: pulse 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes pulse {
+    from { opacity: .3; transform: scale(.8); }
+    to   { opacity: 1;  transform: scale(1.1); }
+  }
+  .badge {
+    padding: 3px 14px;
+    background: #15151d;
+    clip-path: var(--slant);
+    font-size: 12px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ---------- Profile ---------- */
+  .profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+  }
+
+  .avatar-wrap { filter: drop-shadow(0 0 18px rgba(230, 255, 26, .35)); }
+  .avatar {
+    width: 104px;
+    height: 104px;
+    padding: 3.5px;
+    background: var(--acid);
+    clip-path: var(--oct);
+  }
+  .avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+    clip-path: var(--oct);
+    filter: contrast(1.1) saturate(1.15);
+  }
+
+  .name-banner {
+    display: inline-block;
+    padding: 4px 24px 3px;
+    background: var(--acid);
+    color: #000;
+    clip-path: var(--slant);
+    font-size: 26px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: .06em;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+  .role {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- Bio ---------- */
+  .bio {
+    width: 100%;
+    padding: 12px 14px;
+    text-align: left;
+    background: rgba(9, 9, 14, .85);
+    border: 1px solid rgba(255, 255, 255, .07);
+    box-shadow: inset 3px 0 0 var(--cyan);
+  }
+  .bio-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    font-size: 12px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .bio-head .cyan { color: var(--cyan); }
+  .bio-head .online { color: var(--dim); }
+  .bio p {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: .02em;
+    color: #c9c9d4;
+  }
+
+  /* ---------- Sections ---------- */
+  .block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .label {
+    font-size: 13px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Social category buttons: icon on top, label below */
+  .social-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .social {
+    --c: var(--acid);
+    --ct: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 4px;
+    background: rgba(22, 22, 30, .9);
+    color: var(--bone);
+    text-decoration: none;
+    clip-path: var(--btn-clip);
+    transition: background-color .2s ease, color .2s ease, transform .2s ease;
+  }
+  .social .ico {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .social .lbl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    opacity: .85;
+  }
+  .social:hover {
+    background: var(--c);
+    color: var(--ct);
+    transform: translateY(-1px);
+  }
+  .social:focus-visible { outline: none; filter: brightness(1.25); }
+  .yt { --c: #ff0000; --ct: #fff; }
+  .ig { --c: #e1306c; --ct: #fff; }
+  .tt { --c: #00f2fe; --ct: #000; }
+  .dc { --c: #5865f2; --ct: #fff; }
+
+  /* Shared button base */
+  .btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    border: 0;
+    font-family: inherit;
+    text-decoration: none;
+    font-style: italic;
+    font-weight: 900;
+    text-transform: uppercase;
+    clip-path: var(--btn-clip);
+    transition: background-color .2s ease, color .2s ease, transform .2s ease;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:focus-visible { outline: none; filter: brightness(1.25); }
+  .btn-title {
+    display: block;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .btn-sub {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    opacity: .85;
+  }
+
+  .btn-banner {
+    clip-path: var(--banner-clip);
+    padding: 14px 18px;
+  }
+  .btn-banner .btn-title { font-size: 19px; }
+  .btn-banner .btn-sub { font-size: 11px; }
+  .arrow { font-size: 26px; font-weight: 900; }
+
+  .btn-primary { background: var(--acid); color: var(--ink); }
+  .btn-primary:hover { background: #fff; color: #000; }
+  .btn-cyan { background: var(--cyan); color: var(--ink); }
+  .btn-cyan:hover { background: #fff; color: #000; }
+
+  .btn-md {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    padding: 12px 14px;
+    background: rgba(22, 22, 32, .92);
+    color: var(--bone);
+  }
+  .btn-md:hover { background: rgba(40, 40, 56, .95); color: var(--acid); }
+  .btn-md .btn-title { font-size: 15px; }
+  .btn-md .btn-sub { margin-top: 5px; color: var(--muted); opacity: 1; }
+
+  /* Coming-soon pills: disabled, not clickable */
+  .btn-pill {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 9px 6px;
+    background: rgba(18, 18, 26, .9);
+    color: #b0b0bd;
+    clip-path: var(--slant);
+    font-size: 13px;
+    letter-spacing: .08em;
+    text-align: center;
+  }
+  .btn-pill:hover { background: var(--red); color: #fff; }
+  .btn-pill:disabled {
+    cursor: not-allowed;
+    background: rgba(18, 18, 26, .9);
+    color: #6f6f7c;
+    transform: none;
+    filter: grayscale(.6);
+    opacity: .6;
+  }
+  .soon-tag {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .24em;
+    color: var(--dim);
+  }
+
+  .tone-acid { color: var(--acid); }
+  .tone-cyan { color: var(--cyan); }
+
+  .nav { display: flex; flex-direction: column; gap: 8px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+  /* ---------- Footer ---------- */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, .06);
+    font-size: 11px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .footer .ok { color: var(--acid); }
+
+  /* ---------- Small screens ---------- */
+  @media (max-width: 360px) {
+    .social-grid { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <main class="hud-wrap">
+    <div class="hud-card">
+
+      <!-- Top status bar -->
+      <header class="topbar">
+        <div class="live">
+          <span class="dot" aria-hidden="true"></span>
+          <span>Live Streamer &amp; Creator</span>
+        </div>
+        <span class="badge">DGCB</span>
+      </header>
+
+      <!-- Profile -->
+      <section class="profile">
+        <div class="avatar-wrap">
+          <div class="avatar">
+            <img id="userAvatar"
+                 src="https://raw.githubusercontent.com/NawfalHadi/photos/refs/heads/main/Frame%2014.png"
+                 alt="Avatar Baginda DGCB">
+          </div>
+        </div>
+
+        <div>
+          <h1 class="name-banner">Baginda DGCB</h1>
+          <p class="role">Kesatria Utama Kerajaan /// Streamer &amp; Content Creator</p>
+        </div>
+
+        <div class="bio">
+          <div class="bio-head">
+            <span class="cyan">📋 Telemetry Bio</span>
+            <span class="online">[STATUS: FOKUS BERAK]</span>
+          </div>
+          <p>Halo rakyat ku, terima kasih karena telah mendukung, maka kita akan tidur melalui juta-jutaan mimpi, ada button yang hanya menyala jika saya steraming, terimakasih</p>
+        </div>
+      </section>
+
+      <!-- Social accounts -->
+      <section class="block">
+        <h2 class="label">⚡ Kategori Akun Medsos</h2>
+        <div class="social-grid">
+          <a href="https://www.youtube.com/@wh4fso" target="_blank" rel="noopener noreferrer" class="social yt">
+            <i class="fa-brands fa-youtube ico" aria-hidden="true"></i>
+            <span class="lbl">YOUTUBE</span>
+          </a>
+          <a href="https://www.instagram.com/nawlhadaif/" target="_blank" rel="noopener noreferrer" class="social ig">
+            <i class="fa-brands fa-instagram ico" aria-hidden="true"></i>
+            <span class="lbl">INSTAGRAM</span>
+          </a>
+          <a href="https://www.tiktok.com/@buergerteriyaki" target="_blank" rel="noopener noreferrer" class="social tt">
+            <i class="fa-brands fa-tiktok ico" aria-hidden="true"></i>
+            <span class="lbl">TIKTOK</span>
+          </a>
+          <a href="https://discord.gg/tP2VTW57FV" target="_blank" rel="noopener noreferrer" class="social dc">
+            <i class="fa-brands fa-discord ico" aria-hidden="true"></i>
+            <span class="lbl">DISCORD</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Navigation and main actions -->
+      <section class="block">
+        <h2 class="label">🎯 Navigasi &amp; Aksi Utama</h2>
+
+        <div class="nav">
+          <a href="https://app.baginda-dgcb.my.id/login" class="btn btn-banner btn-primary">
+            <span>
+              <span class="btn-title">⚡ LOGIN / MASUK DASHBOARD</span>
+              <span class="btn-sub">Akses Poin &amp; Fitur Kesatria Kerajaan DGCB</span>
+            </span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+
+          <a href="https://saweria.co/douburotate" target="_blank" rel="noopener noreferrer" class="btn btn-banner btn-cyan">
+            <span>
+              <span class="btn-title">📢 BERIKAN UPETI UNTUK ATMIN</span>
+              <span class="btn-sub">Tampilkan Pesan Langsung di Overlay Stream</span>
+            </span>
+            <span class="arrow" aria-hidden="true">⚡</span>
+          </a>
+
+          <div class="grid-2">
+            <a href="https://saweria.co/douburotate" target="_blank" rel="noopener noreferrer" class="btn btn-md">
+              <span class="btn-title">💸 DUKUNG STREAM</span>
+              <span class="btn-sub">SAWERIA / DONASI</span>
+            </a>
+            <a href="https://app.baginda-dgcb.my.id/register" class="btn btn-md">
+              <span class="btn-title tone-acid">⚔️ REGISTRASI</span>
+              <span class="btn-sub">DAFTAR AKUN BARU</span>
+            </a>
+          </div>
+
+          <div class="grid-2">
+            <a href="https://whatsapp.com/channel/0029VbD5ZdJChq6QtgU1i61q" target="_blank" rel="noopener noreferrer" class="btn btn-md">
+              <span class="btn-title">💬 WA COMMUNITY</span>
+              <span class="btn-sub">GRUP RESMI DGCB</span>
+            </a>
+            <button type="button" class="btn btn-md" disabled>
+              <span class="btn-title tone-cyan">🛍️ MERCH STORE</span>
+              <span class="btn-sub">BELI APPAREL RESMI</span>
+              <span class="soon-tag">SOON</span>
+            </button>
+          </div>
+
+          <div class="grid-3">
+            <button type="button" class="btn btn-pill" disabled>
+              <span>📜 ATURAN POIN</span>
+              <span class="soon-tag">SOON</span>
+            </button>
+            <button type="button" class="btn btn-pill" disabled>
+              <span>🏆 LEADERBOARD</span>
+              <span class="soon-tag">SOON</span>
+            </button>
+            <button type="button" class="btn btn-pill" disabled>
+              <span>📅 JADWAL LIVE</span>
+              <span class="soon-tag">SOON</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <span>Kerajaan DGCB /// Portal Root</span>
+        <span class="ok">Status: Sedang Berak</span>
+      </footer>
+
+    </div>
+  </main>
+
+  <script>
+    // Fallback avatar when the picture fails to load
+    const PLACEHOLDER_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#1c1c24"/><stop offset="1" stop-color="#0b0b10"/>' +
+      '</linearGradient></defs>' +
+      '<rect width="100" height="100" fill="url(#g)"/>' +
+      '<circle cx="50" cy="40" r="18" fill="#e6ff1a"/>' +
+      '<path d="M18 100c4-22 17-32 32-32s28 10 32 32z" fill="#e6ff1a"/>' +
+      '</svg>'
+    );
+
+    const avatarEl = document.getElementById('userAvatar');
+    avatarEl.addEventListener('error', () => {
+      if (avatarEl.src !== PLACEHOLDER_AVATAR) avatarEl.src = PLACEHOLDER_AVATAR;
+    });
+  </script>
+</body>
+</html>
