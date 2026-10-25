@@ -28,7 +28,9 @@ def initialize_database():
         ("tb_viewers", "migrate_tb_viewers.py"),
         ("tb_members", "migrate_tb_members.py"),
         ("tb_stats", "migrate_tb_stats.py"),
-        ("tb_viewers_alter_daily", "migrate_alter_tb_stats.py")
+        ("tb_viewers_alter_daily", "migrate_alter_tb_stats.py"),
+        ("tb_roles", "migrate_tb_roles.py"),
+        ("tb_viewers_alter_roles", "migrate_alter_tb_roles_viewer.py"),
     ]
 
     for tb_name, migration_file in migrations:
