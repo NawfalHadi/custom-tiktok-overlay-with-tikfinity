@@ -4,7 +4,8 @@ from flask import Blueprint, redirect, render_template, session, request, jsonif
 from controller.admin_controller import (
     get_admin_viewers_data,
     update_viewer_role,
-    toggle_viewer_membership
+    toggle_viewer_membership,
+    add_points_to_viewer
 )
 
 from utils.db import db_connection
@@ -74,3 +75,12 @@ def api_toggle_member(viewer_id):
     """Toggles a viewer's presence inside tb_members."""
     is_member = toggle_viewer_membership(viewer_id)
     return jsonify({"success": True, "is_member": is_member})
+
+@dashboard_bp.route("/api/admin/viewers/<int:viewer_id>/add-points", methods=["POST"])
+def api_add_points(viewer_id):
+    """API endpoint to add points to a selected viewer."""
+    data = request.get_json() or {}
+    points = int(data.get("points", 0))
+    if points > 0:
+        add_points_to_viewer(viewer_id, points)
+    return jsonify({"success": True})

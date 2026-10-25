@@ -1,5 +1,5 @@
 import math
-from utils.db import db_connection
+from utils.db import add_points, db_connection
 
 def get_admin_viewers_data(request_args):
     """
@@ -120,3 +120,8 @@ def toggle_viewer_membership(viewer_id):
         else:
             conn.execute("INSERT INTO tb_members (id_viewer, is_announced, joined_at) VALUES (?, 0, CURRENT_TIMESTAMP)", (viewer_id,))
             return True
+
+def add_points_to_viewer(viewer_id, points):
+    """Adds points to a specific viewer using utils/db.py."""
+    with db_connection() as conn:
+        add_points(conn, viewer_id, points)
