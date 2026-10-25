@@ -48,6 +48,9 @@
                 <button id="memberBtn" onclick="toggleMemberFilter()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-zinc-700">
                     Members Only
                 </button>
+                <button onclick="promptCreateRole()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-cyan-500 shadow-lg shadow-cyan-900/20">
+                    + Create New Role
+                </button>
             </div>
         </div>
 
@@ -174,7 +177,7 @@
                             + Points
                         </button>
                         <button onclick="toggleMember(${v.id})" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-xs font-semibold rounded-lg text-zinc-200 transition-all border border-zinc-700">
-                            ${v.is_member ? 'Revoke Member' : 'Make Member'}
+                            ${v.is_member ? 'Rev Member' : 'Make Member'}
                         </button>
                     </td>
                 `;
@@ -280,6 +283,31 @@
 
             fetchViewers();
         }
+        
+        async function promptCreateRole() {
+            const roleName = prompt("Enter the name of the new role (e.g., Moderator, VIP, Kesatria):");
+            if (!roleName || !roleName.trim()) return;
+
+            try {
+                const res = await fetch('/api/admin/roles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role_name: roleName.trim() })
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    alert(result.message);
+                    fetchViewers(); // Refresh table/roles dropdowns
+                } else {
+                    alert("Error: " + (result.error || "Failed to create role"));
+                }
+            } catch (err) {
+                console.error("Failed to create role:", err);
+                alert("An error occurred while creating the role.");
+            }
+        }
+        
         // Initial Load on Page Open
         document.addEventListener('DOMContentLoaded', fetchViewers);
     </script>

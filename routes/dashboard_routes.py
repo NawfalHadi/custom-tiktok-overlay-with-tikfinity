@@ -5,7 +5,8 @@ from controller.admin_controller import (
     get_admin_viewers_data,
     update_viewer_role,
     toggle_viewer_membership,
-    add_points_to_viewer
+    add_points_to_viewer,
+    create_role
 )
 
 from utils.db import db_connection
@@ -35,9 +36,6 @@ def _render_dashboard(template):
         return redirect("/login")
 
     return render_template(template, user=user)
-
-
-
 
 @dashboard_bp.route("/dashboard")
 def get_profile():
@@ -84,3 +82,17 @@ def api_add_points(viewer_id):
     if points > 0:
         add_points_to_viewer(viewer_id, points)
     return jsonify({"success": True})
+
+@dashboard_bp.route("/api/admin/roles", methods=["POST"])
+def api_create_role():
+    """API endpoint to create a new role in tb_roles."""
+    data = request.get_json() or {}
+    role_name = data.get("role_name", "").strip()
+    if not role_name:
+        return jsonify({"success": False, "error": "Role name is required"}), 400
+    
+    try:
+        create_role(role_name)
+        return jsonify({"success": True, "message": f"Role '{role_name}' created successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400

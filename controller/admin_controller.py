@@ -125,3 +125,8 @@ def add_points_to_viewer(viewer_id, points):
     """Adds points to a specific viewer using utils/db.py."""
     with db_connection() as conn:
         add_points(conn, viewer_id, points)
+
+def create_role(role_name):
+    """Inserts a new role into tb_roles."""
+    with db_connection() as conn:
+        conn.execute("INSERT INTO tb_roles (roles_name) VALUES (?)", (role_name,))
