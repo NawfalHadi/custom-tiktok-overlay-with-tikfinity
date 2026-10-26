@@ -69,4 +69,4 @@ if __name__ == '__main__':
     point_thread = threading.Thread(target=run_point_inspector, daemon=True)
     point_thread.start()
 
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False)

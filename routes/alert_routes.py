@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request, session
 
-from controller.alert_controller import calculate_message_cost, deduct_points
+from controller.alert_controller import add_history_entry, calculate_message_cost, deduct_points
 from utils.extensions import socketio
 
 alert_bp = Blueprint("alert", __name__)
@@ -25,6 +25,8 @@ def trigger_msg_alert():
             "success": False,
             "message": f"Poin Anda tidak cukup! Butuh {cost:,} Pts, poin Anda saat ini {points:,} Pts.",
         }), 400
+    else:
+        add_history_entry(session["user_id"], message)
 
     socketio.emit("message_alert", {
         "username": session.get("username", "Kesatria"),

@@ -24,3 +24,11 @@ def deduct_points(user_id, cost):
 
     current = row[0] if row and row[0] is not None else 0
     return cursor.rowcount > 0, current
+
+def add_history_entry(user_id, message):
+    """Add a history entry for the user."""
+    with db_connection() as conn:
+        conn.execute(
+            "INSERT INTO tb_history (id_viewer, message) VALUES (?, ?)",
+            (user_id, message),
+        )
