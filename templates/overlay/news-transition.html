@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Transition // Admin HUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #05040a;
+            --gold: #ffd700;
+            --gold-light: #fff2a1;
+            --blue: #2563eb;
+            --sky: #38bdf8;
+            --blue-light: #93c5fd;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: transparent;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* CRT scanlines */
+        .scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%),
+                        linear-gradient(90deg, rgba(255, 215, 0, 0.03), rgba(255, 0, 0, 0.03), rgba(0, 240, 255, 0.03));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .fullscreen-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Dual counter-sliding split panels */
+        .split-panel-left {
+            position: absolute;
+            width: 140vw;
+            height: 160vh;
+            top: -30vh;
+            left: -70vw;
+            background: linear-gradient(135deg, #04090a 0%, #031f3f 60%, #0a3a7a 100%);
+            transform: skewX(-28deg) translateX(-110%);
+            border-right: 6px solid var(--sky);
+            box-shadow: 25px 0 60px rgba(0, 0, 0, 0.95);
+        }
+
+        .split-panel-right {
+            position: absolute;
+            width: 140vw;
+            height: 160vh;
+            top: -30vh;
+            right: -70vw;
+            background: linear-gradient(-45deg, #05040a 0%, #071a3a 50%, #0c2a5c 100%);
+            transform: skewX(-28deg) translateX(110%);
+            border-left: 6px solid var(--blue-light);
+            box-shadow: -25px 0 60px rgba(0, 0, 0, 0.95);
+        }
+
+        @keyframes slideLeftIn {
+            0% { transform: skewX(-28deg) translateX(-110%); }
+            14% { transform: skewX(-28deg) translateX(0%); }
+            82% { transform: skewX(-28deg) translateX(0%); }
+            96% { transform: skewX(-28deg) translateX(-110%); }
+            100% { transform: skewX(-28deg) translateX(-110%); }
+        }
+
+        @keyframes slideRightIn {
+            0% { transform: skewX(-28deg) translateX(110%); }
+            14% { transform: skewX(-28deg) translateX(0%); }
+            82% { transform: skewX(-28deg) translateX(0%); }
+            96% { transform: skewX(-28deg) translateX(110%); }
+            100% { transform: skewX(-28deg) translateX(110%); }
+        }
+
+        .animating .split-panel-left { animation: slideLeftIn 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animating .split-panel-right { animation: slideRightIn 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Content layer fade */
+        @keyframes contentFade {
+            0%, 12% { opacity: 0; }
+            18% { opacity: 1; }
+            78% { opacity: 1; }
+            84%, 100% { opacity: 0; }
+        }
+        .animating .content-layer { animation: contentFade 3.6s linear forwards; }
+
+        /* Center block slam entrance */
+        @keyframes centerSlam {
+            0%, 18% { transform: scale(1.4); opacity: 0; filter: blur(20px); }
+            23% { transform: scale(1); opacity: 1; filter: blur(0); }
+            72% { transform: scale(1.02); opacity: 1; filter: blur(0); }
+            76%, 100% { transform: scale(0.92); opacity: 0; filter: blur(10px); }
+        }
+        .animating .center-slam { animation: centerSlam 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Gold flash impact */
+        @keyframes goldFlash {
+            0%, 21% { opacity: 0; }
+            22% { opacity: 0.95; }
+            27%, 100% { opacity: 0; }
+        }
+        .animating .gold-flash { animation: goldFlash 3.6s linear forwards; }
+
+        /* Rotating halo backdrop */
+        @keyframes haloSpin { 100% { transform: rotate(360deg); } }
+        @keyframes haloSpinRev { 100% { transform: rotate(-360deg); } }
+        .halo-ring-1 { animation: haloSpin 30s linear infinite; }
+        .halo-ring-2 { animation: haloSpinRev 20s linear infinite; }
+
+        .glow-white { text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 25px rgba(56, 189, 248, 0.5); }
+    </style>
+</head>
+<body class="w-full h-screen">
+
+    <div class="fullscreen-container">
+
+        <!-- TRANSITION OVERLAY -->
+        <div id="transition-overlay" class="absolute inset-0 z-50 overflow-hidden pointer-events-none hidden">
+
+            <!-- LEFT SPLIT PANEL -->
+            <div class="split-panel-left z-10">
+                <div class="absolute inset-0 scanlines opacity-50"></div>
+            </div>
+
+            <!-- RIGHT SPLIT PANEL -->
+            <div class="split-panel-right z-20">
+                <div class="absolute inset-0 scanlines opacity-50"></div>
+            </div>
+
+            <!-- CONTENT LAYER: centered in the closed screen -->
+            <div class="content-layer absolute inset-0 z-30 flex items-center justify-center opacity-0">
+
+                <!-- GOLD IMPACT FLASH -->
+                <div class="gold-flash absolute inset-0 bg-gradient-to-r from-[var(--gold)] via-white to-[var(--gold)] opacity-0 z-50 pointer-events-none mix-blend-overlay"></div>
+
+                <!-- ROTATING HALO BACKDROP -->
+                <div class="absolute inset-0 flex items-center justify-center overflow-hidden opacity-30 pointer-events-none">
+                    <div class="halo-ring-1 absolute w-[75vh] h-[75vh] border-2 border-dashed border-[var(--gold)] rounded-full"></div>
+                    <div class="halo-ring-2 absolute w-[55vh] h-[55vh] border-4 border-dotted border-sky-400 rounded-full"></div>
+                </div>
+
+                <!-- CENTER BLOCK: image (optional) + text (optional) -->
+                <div id="center-block" class="center-slam relative z-40 flex flex-col items-center opacity-0 max-w-[80vw]">
+
+                    <!-- Image (hidden when null) -->
+                    <div id="image-wrap" class="hidden relative p-[4px] mb-6 bg-gradient-to-br from-[var(--gold-light)] via-[var(--blue)] to-[var(--gold)] shadow-[0_0_50px_rgba(255,215,0,0.5),0_0_30px_rgba(37,99,235,0.7)]">
+                        <img id="transition-image" alt="" class="block w-[56vw] max-w-[960px] aspect-video object-cover bg-black">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let isAnimating = false;
+        const overlay = document.getElementById('transition-overlay');
+        const imageWrap = document.getElementById('image-wrap');
+        const transitionImg = document.getElementById('transition-image');
+        // Show transition. Image is optional (null = nothing shown in the middle).
+        function triggerTransition({ image = null } = {}) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            if (image) {
+                transitionImg.src = image;
+                imageWrap.classList.remove('hidden');
+            } else {
+                imageWrap.classList.add('hidden');
+            }
+
+            overlay.classList.remove('hidden');
+            overlay.classList.remove('animating');
+            void overlay.offsetWidth; // force reflow so the animation restarts
+            overlay.classList.add('animating');
+
+            setTimeout(() => {
+                overlay.classList.remove('animating');
+                overlay.classList.add('hidden');
+                isAnimating = false;
+            }, 3700);
+        }
+
+        // Fake data for now
+        const fakeItems = [
+            { image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1600&auto=format&fit=crop&q=80' },
+            { image: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=1600&auto=format&fit=crop&q=80' }
+        ];
+        let index = 0;
+
+        // Space = next fake item
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerTransition(fakeItems[index]);
+                index = (index + 1) % fakeItems.length;
+            }
+        });
+
+        // Play first item on load
+        window.addEventListener('load', () => triggerTransition(fakeItems[index++]));
+    </script>
+</body>
+</html>

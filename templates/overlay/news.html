@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Presenter Overlay // Admin HUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #040a1a;
+            --blue: #2563eb;
+            --blue-deep: #1e3a8a;
+            --blue-dark: #0a1433;
+            --blue-light: #93c5fd;
+            --blue-pale: #dbeafe;
+            --sky: #38bdf8;
+
+            --tag-clip: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+            --frame-clip: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: transparent;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* CRT scanlines */
+        .scanlines {
+            background: linear-gradient(rgba(10, 20, 51, 0) 50%, rgba(0, 0, 0, 0.45) 50%),
+                        linear-gradient(90deg, rgba(56, 189, 248, 0.04), rgba(37, 99, 235, 0.04), rgba(147, 197, 253, 0.04));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .clip-tag   { clip-path: var(--tag-clip); }
+        .clip-frame { clip-path: var(--frame-clip); }
+
+        .glow-blue  { text-shadow: 0 0 18px rgba(56, 189, 248, 0.9), 0 0 35px rgba(37, 99, 235, 0.7); }
+        .glow-white { text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 25px rgba(56, 189, 248, 0.5); }
+
+        /* Banner entrance: slide up */
+        @keyframes bannerIn {
+            0%   { transform: translateY(120%); opacity: 0; }
+            60%  { transform: translateY(-4%); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes bannerOut {
+            0%   { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(120%); opacity: 0; }
+        }
+
+        /* Text slam */
+        @keyframes textSlam {
+            0%   { transform: scale(1.25); opacity: 0; filter: blur(12px); }
+            100% { transform: scale(1); opacity: 1; filter: blur(0); }
+        }
+
+        /* Image drop-in from right */
+        @keyframes imageIn {
+            0%   { transform: translateX(120%); opacity: 0; }
+            70%  { transform: translateX(-3%); opacity: 1; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes imageOut {
+            0%   { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
+
+        /* Scrolling ticker */
+        @keyframes tickerScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-content {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: tickerScroll 14s linear infinite;
+        }
+
+        /* Pulsing live dot */
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(147, 197, 253, 0.9); }
+            50% { box-shadow: 0 0 0 8px rgba(147, 197, 253, 0); }
+        }
+        .live-dot { animation: pulse 1.4s ease-out infinite; }
+
+        .banner-in  { animation: bannerIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .banner-out { animation: bannerOut 0.45s ease-in forwards; }
+        .text-slam  { animation: textSlam 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+        .image-in   { animation: imageIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards; }
+        .image-out  { animation: imageOut 0.4s ease-in forwards; }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- OPTIONAL IMAGE (2:3 ratio, default top right, hidden when no image) -->
+    <div id="image-panel" class="hidden absolute right-[4vw] top-[4vh] h-[64vh] aspect-[2/3] p-[3px] clip-frame bg-gradient-to-br from-[var(--blue-pale)] via-[var(--blue)] to-[var(--sky)] shadow-[0_0_50px_rgba(56,189,248,0.5),0_0_30px_rgba(37,99,235,0.7)]">
+        <div class="relative w-full h-full clip-frame bg-black overflow-hidden">
+            <img id="overlay-image" alt="" class="w-full h-full object-cover contrast-125">
+            <div class="absolute inset-0 scanlines opacity-60"></div>
+            <!-- Highlight title inside image -->
+            <div id="image-title" class="hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent pt-16 pb-5 px-6">
+                <div class="inline-block clip-tag bg-gradient-to-r from-[var(--blue)] to-[var(--sky)] px-5 py-1 mb-2">
+                    <span class="text-[10px] font-black italic uppercase tracking-widest text-white">Highlight</span>
+                </div>
+                <p id="image-title-text" class="text-4xl font-black italic uppercase tracking-tight leading-none text-[var(--blue-light)] glow-blue"></p>
+            </div>
+        </div>
+        <!-- Corner tag -->
+        <div class="absolute -top-3 left-6 clip-tag bg-[var(--sky)] text-black px-4 py-0.5 text-xs font-black italic tracking-widest uppercase">
+            Report Feed
+        </div>
+    </div>
+
+    <!-- BOTTOM CAPTION BANNER -->
+    <div id="banner" class="hidden absolute left-0 right-0 bottom-0">
+
+        <!-- Ticker strip -->
+        <div class="relative w-full h-8 bg-black/95 border-y-2 border-[var(--blue)] flex items-center overflow-hidden">
+            <div class="ticker-content text-[var(--blue-light)] font-black italic tracking-[0.3em] text-xs uppercase">
+                ⚡ DGCB NEWS /// BERITA TERKINI /// LIVE REPORT /// DGCB NEWS /// BERITA TERKINI /// LIVE REPORT ///
+            </div>
+        </div>
+
+        <!-- Main caption -->
+        <div class="relative bg-gradient-to-r from-[var(--blue-dark)] via-[#0c1d4a]/95 to-[var(--blue-dark)] border-t-4 border-[var(--blue)] shadow-[0_-10px_60px_rgba(37,99,235,0.45)]">
+            <div class="absolute inset-0 scanlines opacity-40"></div>
+
+            <div class="relative flex items-stretch">
+                <!-- LIVE tag -->
+                <div class="flex items-center gap-3 bg-gradient-to-r from-[var(--blue)] to-[var(--blue-deep)] text-white pl-8 pr-12 py-3 clip-tag">
+                    <span class="live-dot inline-block w-3 h-3 rounded-full bg-white"></span>
+                    <span class="text-xl font-black italic uppercase tracking-widest">Live</span>
+                </div>
+
+                <!-- Text block -->
+                <div class="flex-1 px-8 py-4 min-w-0">
+                    <p id="news-text" class="text-slam text-5xl md:text-6xl font-black italic uppercase tracking-tight leading-none text-white glow-white truncate"></p>
+                    <p id="news-subtext" class="text-xl font-bold uppercase tracking-widest text-[var(--blue-light)] mt-2 truncate"></p>
+                </div>
+
+                <!-- Brand tag -->
+                <div class="hidden md:flex items-center bg-[var(--sky)] text-black px-8 clip-tag">
+                    <span class="text-lg font-black italic uppercase tracking-widest">DGCB</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const banner = document.getElementById('banner');
+        const imagePanel = document.getElementById('image-panel');
+        const overlayImage = document.getElementById('overlay-image');
+        const newsText = document.getElementById('news-text');
+        const newsSubtext = document.getElementById('news-subtext');
+        const imageTitle = document.getElementById('image-title');
+        const imageTitleText = document.getElementById('image-title-text');
+
+        let hideTimer = null;
+
+        // Show a news item. Pass image as null/empty to hide the image panel.
+        function showNews({ text, subtext = '', image = null, title = '' }) {
+            clearTimeout(hideTimer);
+
+            // Restart text slam animation
+            newsText.classList.remove('text-slam');
+            void newsText.offsetWidth;
+            newsText.classList.add('text-slam');
+
+            newsText.textContent = text || '';
+            newsSubtext.textContent = subtext || '';
+            newsSubtext.classList.toggle('hidden', !subtext);
+
+            if (image) {
+                overlayImage.src = image;
+                imageTitleText.textContent = title || '';
+                imageTitle.classList.toggle('hidden', !title);
+                imagePanel.classList.remove('hidden', 'image-out');
+                imagePanel.classList.remove('image-in');
+                void imagePanel.offsetWidth;
+                imagePanel.classList.add('image-in');
+            } else {
+                imagePanel.classList.add('hidden');
+                imagePanel.classList.remove('image-in');
+            }
+
+            banner.classList.remove('hidden', 'banner-out', 'banner-in');
+            void banner.offsetWidth;
+            banner.classList.add('banner-in');
+        }
+
+        function hideNews() {
+            banner.classList.remove('banner-in');
+            banner.classList.add('banner-out');
+
+            imagePanel.classList.remove('image-in');
+            imagePanel.classList.add('image-out');
+
+            hideTimer = setTimeout(() => {
+                banner.classList.add('hidden');
+                imagePanel.classList.add('hidden');
+            }, 450);
+        }
+
+        // Fake data for now
+        const fakeNews = [
+            {
+                text: 'Harga beras naik 15% di pasar tradisional',
+                subtext: 'Pemerintah daerah akan meninjau distribusi stok minggu ini',
+                title: 'Pasar Tradisional',
+                image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1200&auto=format&fit=crop&q=80'
+            },
+            {
+                text: 'Cuaca ekstrem diperkirakan berlangsung hingga akhir pekan',
+                subtext: '',
+                image: null
+            }
+        ];
+
+        let index = 0;
+
+        // Keyboard: Space = next fake item, H = hide
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                showNews(fakeNews[index]);
+                index = (index + 1) % fakeNews.length;
+            }
+            if (e.key.toLowerCase() === 'h') hideNews();
+        });
+
+        // Demo: show first item on load
+        window.addEventListener('load', () => showNews(fakeNews[index++]));
+    </script>
+</body>
+</html>
