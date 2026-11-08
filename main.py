@@ -20,6 +20,7 @@ from routes.member_routes import member_bp
 from routes.gift_routes import gift_bp
 from routes.hud_routes import hud_bp
 from routes.overlay_routes import overlay_bp
+from routes.news_routes import news_bp
 
 from listener import run_tikfinity_listener
 
@@ -43,6 +44,7 @@ app.register_blueprint(member_bp)
 app.register_blueprint(gift_bp)
 app.register_blueprint(hud_bp)
 app.register_blueprint(overlay_bp)
+app.register_blueprint(news_bp)
 
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -69,4 +71,4 @@ if __name__ == '__main__':
     point_thread = threading.Thread(target=run_point_inspector, daemon=True)
     point_thread.start()
 
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

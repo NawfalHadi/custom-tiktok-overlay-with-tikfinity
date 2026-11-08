@@ -166,9 +166,13 @@
         </div>
 
     </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         let isAnimating = false;
+
+        const socket = io();
+        socket.on('news_transition', d => triggerTransition({ image: d.image }));
+        
         const overlay = document.getElementById('transition-overlay');
         const imageWrap = document.getElementById('image-wrap');
         const transitionImg = document.getElementById('transition-image');

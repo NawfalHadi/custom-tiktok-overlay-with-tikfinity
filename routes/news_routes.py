@@ -12,21 +12,22 @@ TRANSITION_DURATION = 3.6
 
 
 @news_bp.route("/admin/news")
+@role_required(1)
 def news_panel():
     """News input panel (news-panel.html)."""
-    return render_template("templates/news/news-panel.html")
+    return render_template("templates/controls/news-panel.html")
 
 
 @news_bp.route("/news-transition")
 def news_transition_page():
     """Transition source for OBS (news-transition.html)."""
-    return render_template("templates/news/news-transition.html")
+    return render_template("templates/overlay/news-transition.html")
 
 
 @news_bp.route("/news-overlay")
 def news_overlay_page():
     """Presenter overlay source for OBS (news-overlay.html)."""
-    return render_template("templates/news/news-overlay.html")
+    return render_template("templates/overlay/news.html")
 
 
 @news_bp.route("/api/admin/news", methods=["POST"])

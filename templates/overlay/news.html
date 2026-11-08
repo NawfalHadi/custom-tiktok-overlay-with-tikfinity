@@ -156,8 +156,13 @@
             </div>
         </div>
     </div>
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <script>
+        const socket = io();
+        socket.on('news_overlay', d => showNews(d));
+        socket.on('news_hide', () => hideNews());
+
         const banner = document.getElementById('banner');
         const imagePanel = document.getElementById('image-panel');
         const overlayImage = document.getElementById('overlay-image');
@@ -167,6 +172,8 @@
         const imageTitleText = document.getElementById('image-title-text');
 
         let hideTimer = null;
+
+        
 
         // Show a news item. Pass image as null/empty to hide the image panel.
         function showNews({ text, subtext = '', image = null, title = '' }) {
@@ -239,8 +246,6 @@
             if (e.key.toLowerCase() === 'h') hideNews();
         });
 
-        // Demo: show first item on load
-        window.addEventListener('load', () => showNews(fakeNews[index++]));
     </script>
 </body>
 </html>

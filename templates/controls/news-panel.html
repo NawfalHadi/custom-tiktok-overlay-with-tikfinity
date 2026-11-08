@@ -64,6 +64,13 @@
                 <img id="overlayPreview" alt="" class="hidden mt-2 max-h-40 rounded-xl border border-zinc-800 object-cover">
             </div>
 
+            <!-- Image Highlight Text -->
+            <div class="space-y-2 border-t border-zinc-800 pt-5">
+                <label for="highlightText" class="block text-xs font-bold uppercase tracking-widest text-sky-400">Image Highlight Text <span class="text-zinc-600 normal-case tracking-normal">(optional, shown on overlay image)</span></label>
+                <input type="text" id="highlightText" placeholder="Enter highlight text..."
+                       class="w-full bg-zinc-950 text-sm px-4 py-2.5 rounded-xl border border-zinc-800 focus:outline-none focus:border-sky-500 text-white transition-all">
+            </div>
+
             <!-- Submit -->
             <div class="flex items-center justify-between border-t border-zinc-800 pt-5 gap-4">
                 <span id="statusMsg" class="text-xs text-zinc-500"></span>
@@ -112,41 +119,28 @@
             reader.readAsDataURL(file);
         }
 
-        function handleSubmit(e) {
+        async function handleSubmit(e) {
             e.preventDefault();
             const status = document.getElementById('statusMsg');
 
-            const item = {
-                id: Date.now(),
+            const payload = {
                 text: document.getElementById('newsText').value.trim(),
                 subtext: document.getElementById('subText').value.trim(),
                 transitionImage: document.getElementById('transitionUrl').value.trim(),
-                overlayImage: document.getElementById('overlayUrl').value.trim()
+                overlayImage: document.getElementById('overlayUrl').value.trim(),
+                highlightText: document.getElementById('highlightText').value.trim()
             };
 
-            if (!item.text) {
-                status.textContent = 'News text is required.';
-                status.className = 'text-xs text-red-400';
-                return;
-            }
-
-            if (!item.transitionImage) {
-                status.textContent = 'Transition image is required.';
-                status.className = 'text-xs text-red-400';
-                return;
-            }
-
-            newsItems.unshift(item);
-            renderList();
-
-            status.textContent = 'News submitted.';
-            status.className = 'text-xs text-emerald-400';
-
-            e.target.reset();
-            ['transitionPreview', 'overlayPreview'].forEach(id => {
-                document.getElementById(id).removeAttribute('src');
-                document.getElementById(id).classList.add('hidden');
+            const res = await fetch('/api/admin/news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
+            const result = await res.json();
+
+            status.textContent = result.message;
+            status.className = result.success ? 'text-xs text-emerald-400' : 'text-xs text-red-400';
+            if (result.success) e.target.reset();
         }
 
         function escapeHtml(str) {
