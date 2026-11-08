@@ -3,25 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream Ending Credits</title>
+    <title>Stream Ending Credits - Cyberpunk HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --ink: #07070a;
+            --bone: #f4f2ea;
+            --acid: #e6ff1a;
+            --red: #ff2d3d;
+            --cyan: #00f0ff;
+            --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Oswald', sans-serif;
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
             margin: 0;
             overflow: hidden;
-            background: radial-gradient(circle at center, #09090b 0%, #000000 100%);
+            background: transparent !important;
+            color: var(--bone);
         }
 
         /* Cinematic Credit Crawl Animation */
         @keyframes crawl {
             0% { transform: translateY(100vh); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
+            8% { opacity: 1; }
+            92% { opacity: 1; }
             100% { transform: translateY(-150vh); opacity: 0; }
         }
 
@@ -29,49 +46,71 @@
             animation: crawl 25s linear infinite;
         }
 
-        /* Glow effects */
-        .glow-gold { text-shadow: 0 0 20px rgba(250, 204, 21, 0.6), 0 0 40px rgba(234, 179, 8, 0.3); }
-        .glow-emerald { text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+        /* Cyberpunk HUD Styling Elements */
+        .hud-badge {
+            clip-path: var(--badge-clip);
+            font-style: italic;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
 
-        .scanlines {
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-            background-size: 100% 4px;
-            pointer-events: none;
+        .glow-acid {
+            text-shadow: 0 0 15px rgba(230, 255, 26, 0.6), 0 0 30px rgba(230, 255, 26, 0.3);
+        }
+
+        .glow-cyan {
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.6), 0 0 30px rgba(0, 240, 255, 0.3);
+        }
+
+        .hud-border-box {
+            background: rgba(11, 11, 17, 0.85);
+            border: 1px solid rgba(230, 255, 26, 0.35);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(230, 255, 26, 0.05);
+            clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
         }
     </style>
 </head>
-<body class="w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden text-white">
-
-    <!-- Background Vignette & Scanlines -->
-    <div class="absolute inset-0 bg-radial from-transparent via-black/80 to-black pointer-events-none z-10"></div>
-    <div class="absolute inset-0 scanlines opacity-40 z-20"></div>
+<body class="w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden text-white bg-transparent">
 
     <!-- Main Scrolling Credits Container -->
     <div class="relative z-30 w-full max-w-xl h-full flex flex-col items-center overflow-hidden text-center">
-        <div id="credits-wrapper" class="credits-crawl absolute flex flex-col items-center space-y-16 py-32 w-full">
+        <div id="credits-wrapper" class="credits-crawl absolute flex flex-col items-center space-y-12 py-32 w-full">
             
             <!-- HEADER LOGO / TITLE -->
-            <div class="space-y-3">
-                <div class="text-xs font-bold tracking-[0.4em] text-emerald-400 uppercase">SPECIAL APPRECIATION</div>
-                <h1 class="text-6xl font-black italic tracking-tighter text-yellow-400 glow-gold uppercase">CREDITS</h1>
-                <div class="w-24 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto mt-2"></div>
+            <div class="space-y-2 flex flex-col items-center">
+                <span class="hud-badge inline-block bg-[var(--acid)] text-[var(--ink)] px-4 py-1 text-xs tracking-widest">
+                    ⚡ SPECIAL APPRECIATION ⚡
+                </span>
+                <h1 class="text-7xl font-black italic tracking-wider text-[var(--acid)] glow-acid uppercase leading-none">
+                    STREAM CREDITS
+                </h1>
+                <div class="w-32 h-1 bg-gradient-to-r from-transparent via-[var(--acid)] to-transparent mt-2"></div>
             </div>
 
             <!-- COMMUNITY SECTION -->
-            <div class="space-y-2">
-                <h2 class="text-2xl font-bold tracking-widest text-zinc-400 uppercase">COMMUNITY SUPPORTERS</h2>
-                <p class="text-xs text-zinc-500 tracking-wider">Terima kasih kepada seluruh pementol yang telah bergabung</p>
+            <div class="space-y-1">
+                <h2 class="text-3xl font-black italic tracking-widest text-[var(--cyan)] glow-cyan uppercase">
+                    COMMUNITY SUPPORTERS
+                </h2>
+                <p class="text-xs font-bold italic text-zinc-400 tracking-widest uppercase">
+                    Terima kasih kepada seluruh pementol & kesatria yang telah bergabung
+                </p>
             </div>
 
             <!-- DYNAMIC MEMBERS LIST INJECTED HERE -->
-            <div id="members-credit-list" class="flex flex-col items-center space-y-8 w-full px-8">
+            <div id="members-credit-list" class="flex flex-col items-center space-y-6 w-full px-8">
                 <!-- Injected dynamically via script -->
             </div>
 
             <!-- FOOTER SIGN OFF -->
-            <div class="space-y-4 pt-12">
-                <div class="text-3xl font-black italic tracking-wider text-white glow-emerald">TERIMA KASIH TELAH MENONTON!</div>
-                <div class="text-sm font-semibold tracking-widest text-yellow-500/80 uppercase">SAMPAI JUMPA DI LIVE STREAM BERIKUTNYA</div>
+            <div class="space-y-3 pt-8 flex flex-col items-center">
+                <div class="w-24 h-0.5 bg-[var(--acid)] opacity-40 mb-2"></div>
+                <div class="text-4xl font-black italic tracking-wider text-white glow-cyan uppercase">
+                    TERIMA KASIH TELAH MENONTON!
+                </div>
+                <div class="hud-badge bg-[var(--red)] text-white px-5 py-1 text-sm font-black tracking-widest uppercase">
+                    SAMPAI JUMPA DI LIVE STREAM BERIKUTNYA
+                </div>
             </div>
 
         </div>
@@ -95,18 +134,18 @@
                     container.innerHTML = '';
 
                     if (!Array.isArray(members) || members.length === 0) {
-                        container.innerHTML = `<div class="text-zinc-600 italic">No members recorded yet</div>`;
+                        container.innerHTML = `<div class="hud-badge text-zinc-500 italic text-sm">NO MEMBERS RECORDED YET</div>`;
                         return;
                     }
 
                     members.forEach(m => {
                         const item = document.createElement('div');
-                        item.className = "flex flex-col items-center space-y-1 transform hover:scale-105 transition-transform duration-300";
+                        item.className = "hud-border-box w-full max-w-md py-3 px-6 flex flex-col items-center space-y-0.5 transform hover:scale-105 transition-transform duration-300";
                         
+                        const name = m.username || m.uniqueId || 'User';
                         item.innerHTML = `
-                            <div class="text-xl font-bold tracking-wider text-white drop-shadow-md">@${m.username || m.uniqueId || 'User'}</div>
-                            <div class="text-[10px] tracking-widest text-zinc-500 uppercase">Member</div>
-                            <div class="w-12 h-[1px] bg-zinc-800 mt-2"></div>
+                            <div class="text-2xl font-black italic tracking-wider text-white drop-shadow">@${name.toUpperCase()}</div>
+                            <div class="text-xs font-extrabold italic tracking-widest text-[var(--acid)] uppercase">KESATRIA MEMBER</div>
                         `;
                         container.appendChild(item);
                     });
