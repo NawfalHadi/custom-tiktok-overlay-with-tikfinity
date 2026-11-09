@@ -131,16 +131,35 @@
                 highlightText: document.getElementById('highlightText').value.trim()
             };
 
+            const result = await sendNews(payload);
+
+            status.textContent = result.message;
+            status.className = result.success ? 'text-xs text-emerald-400' : 'text-xs text-red-400';
+
+            if (result.success) {
+                // Cache in memory only (cleared on page refresh)
+                newsItems.unshift({ ...payload, submittedAt: new Date().toLocaleTimeString() });
+                renderList();
+                e.target.reset();
+            }
+        }
+
+        async function sendNews(payload) {
             const res = await fetch('/api/admin/news', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            const result = await res.json();
+            return res.json();
+        }
 
-            status.textContent = result.message;
+        async function replayNews(index) {
+            const item = newsItems[index];
+            const status = document.getElementById('statusMsg');
+            const result = await sendNews(item);
+
+            status.textContent = result.success ? `Replayed: ${item.text}` : result.message;
             status.className = result.success ? 'text-xs text-emerald-400' : 'text-xs text-red-400';
-            if (result.success) e.target.reset();
         }
 
         function escapeHtml(str) {
@@ -156,14 +175,20 @@
                 return;
             }
 
-            list.innerHTML = newsItems.map(n => `
-                <li class="py-4 px-6 hover:bg-zinc-800/40 transition-colors">
-                    <p class="font-bold text-white text-sm">${escapeHtml(n.text)}</p>
-                    ${n.subtext ? `<p class="text-xs text-zinc-400 mt-1">${escapeHtml(n.subtext)}</p>` : ''}
-                    <div class="flex gap-3 mt-2 text-[10px] font-bold uppercase tracking-wider">
-                        <span class="text-amber-400">Transition: ${n.transitionImage ? 'set' : 'none'}</span>
-                        <span class="text-emerald-400">Overlay: ${n.overlayImage ? 'set' : 'none'}</span>
+            list.innerHTML = newsItems.map((n, i) => `
+                <li class="py-4 px-6 hover:bg-zinc-800/40 transition-colors flex justify-between items-start gap-4">
+                    <div class="min-w-0">
+                        <p class="font-bold text-white text-sm truncate">${escapeHtml(n.text)}</p>
+                        ${n.subtext ? `<p class="text-xs text-zinc-400 mt-1">${escapeHtml(n.subtext)}</p>` : ''}
+                        <div class="flex gap-3 mt-2 text-[10px] font-bold uppercase tracking-wider">
+                            <span class="text-amber-400">Transition: ${n.transitionImage ? 'set' : 'none'}</span>
+                            <span class="text-emerald-400">Overlay: ${n.overlayImage ? 'set' : 'none'}</span>
+                            <span class="text-zinc-500">${n.submittedAt}</span>
+                        </div>
                     </div>
+                    <button onclick="replayNews(${i})" class="shrink-0 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-cyan-500">
+                        Replay
+                    </button>
                 </li>
             `).join('');
         }
