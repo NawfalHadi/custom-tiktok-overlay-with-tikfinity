@@ -32,6 +32,7 @@ def initialize_database():
         ("tb_roles", "migrate_tb_roles.py"),
         ("tb_viewers_alter_roles", "migrate_alter_tb_roles_viewer.py"),
         ("tb_history", "migrate_tb_history.py"),
+        ("tb_stats_alter_refresh_pic", "migrate_alter_tb_stats_refresh_pic.py")
     ]
 
     for tb_name, migration_file in migrations:

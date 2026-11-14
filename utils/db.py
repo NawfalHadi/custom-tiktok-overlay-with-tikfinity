@@ -56,6 +56,31 @@ def create_viewer(connection, username, profile_url):
     )
     return viewer_id
 
+def update_profile_picture_viewer(connection, username, new_profile_url):
+    """Update a viewer's profile picture no more than once every 60 seconds."""
+    cursor = connection.execute(
+        """
+        UPDATE tb_stats
+        SET last_refresh_picture = CURRENT_TIMESTAMP
+        WHERE id_viewer = (
+            SELECT id FROM tb_viewers WHERE LOWER(username) = LOWER(?)
+        )
+        AND (
+            last_refresh_picture IS NULL
+            OR last_refresh_picture <= datetime('now', '-1 day')
+        )
+        """,
+        (username,),
+    )
+    if cursor.rowcount == 0:
+        return False
+
+    connection.execute(
+        "UPDATE tb_viewers SET profile_picture_url = ? WHERE LOWER(username) = LOWER(?)",
+        (new_profile_url, username),
+    )
+    return True
+
 
 def add_member(connection, viewer_id):
     """Add a viewer to tb_members. Returns True if a row was inserted."""

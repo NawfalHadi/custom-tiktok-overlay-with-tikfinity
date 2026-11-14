@@ -3,7 +3,7 @@ import requests
 
 
 from utils.config import MEMBER_GIFT_ID, SERVER_URL
-from utils.db import create_viewer, db_connection, find_viewer, find_viewer_detail
+from utils.db import create_viewer, db_connection, find_viewer, find_viewer_detail, update_profile_picture_viewer
 from utils.socket import create_client, run_forever
 from controller.auth_controller import verify_code_from_tiktok
 
@@ -30,6 +30,15 @@ def join_viewer(user, profile_url):
         print(f"-> [SUCCESS] Saved new viewer from Socket.IO event: '{user}'")
     except Exception as error:
         print(f"-> [DATABASE ERROR] {error}")
+
+def change_profile_picture(user, new_profile_url):
+    """Update a viewer's profile picture in the database."""
+    try:
+        with db_connection() as conn:
+            update_profile_picture_viewer(conn, user, new_profile_url)
+        print(f"-> [SUCCESS] Updated profile picture for '{user}'")
+    except Exception as error:
+        print(f"-> [DATABASE ERROR] Failed to update profile picture for '{user}': {error}")
 
 
 def handle_points_command(user, profile_url):
@@ -101,6 +110,10 @@ def on_tiktok_event(res):
         if msg.strip().startswith("!points") or msg.strip().startswith("!poin"):
             print(f"-> [POINTS COMMAND] Dari @{user}: {msg}")
             handle_points_command(user, profile_url)
+
+        if msg.strip().startswith("!refimg") or msg.strip().startswith("!update"):
+            print(f"-> [REFRESH COMMAND] Dari @{user}: {msg}")
+            change_profile_picture(user, profile_url)
 
     elif event == "follow":
         if data.get("uniqueId"):
