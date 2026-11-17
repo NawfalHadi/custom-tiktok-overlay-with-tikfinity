@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard Overlay // Admin HUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --magenta: #ff3d81;
+            --orange: #ff9f1c;
+            --yellow: #fff275;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: transparent;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Readability without a background box */
+        .readable {
+            text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.8), 0 0 2px #000;
+        }
+
+        .title-font { font-family: 'Bungee', sans-serif; }
+
+        .grad-text {
+            background: linear-gradient(90deg, var(--magenta), var(--orange), var(--yellow));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 2px 0 #000);
+        }
+
+        .grad-blue {
+            background: linear-gradient(90deg, #1d4ed8, #38bdf8, #93c5fd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 2px 0 #000);
+        }
+
+        /* Board entrance */
+        @keyframes boardIn {
+            0%   { transform: translateX(120%); opacity: 0; }
+            70%  { transform: translateX(-3%); opacity: 1; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .board-in { animation: boardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+
+        /* Row entrance */
+        @keyframes rowIn {
+            0%   { transform: translateX(30px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .row-in { opacity: 0; animation: rowIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- BOARDS (no background, left side) -->
+    <div id="boards" class="absolute left-[4vw] top-[22vh] w-[16vw] max-w-[300px] flex flex-col gap-6">
+
+        <!-- ALL-TIME -->
+        <div class="board-in" style="animation-delay: 0s">
+            <h2 class="title-font grad-blue text-base mb-2">SANG SATRIA SEDUNIA</h2>
+            <ul id="alltime-rows" class="flex flex-col gap-2"></ul>
+        </div>
+
+        <!-- THIS STREAM / TODAY -->
+        <div class="board-in" style="animation-delay: 0.15s">
+            <h2 class="title-font grad-blue text-base mb-2">PRAJURIT HARI INI</h2>
+            <ul id="stream-rows" class="flex flex-col gap-2"></ul>
+        </div>
+
+    </div>
+
+    <script>
+        // Dummy data shown until the first live update arrives
+        const allTimeData = [
+            { username: 'KesatriaBiru',  points: 128500, avatar: '' },
+            { username: 'DewiSenja',     points: 97200,  avatar: '' },
+            { username: 'GarudaMuda',    points: 85040,  avatar: '' },
+            { username: 'ArjunaID',      points: 71310,  avatar: '' },
+            { username: 'NusantaraKing', points: 64800,  avatar: '' }
+        ];
+
+        const streamData = [
+            { username: 'LangitTerang', points: 4200, avatar: '' },
+            { username: 'KesatriaBiru', points: 3650, avatar: '' },
+            { username: 'PasirPutih',   points: 3100, avatar: '' },
+            { username: 'DewiSenja',    points: 2480, avatar: '' },
+            { username: 'RajaKecil',    points: 1900, avatar: '' }
+        ];
+
+        const MAX_NAMES = 3;
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Avatar: uses the viewer's picture if given, otherwise a generated one from the name
+        function avatarUrl(v) {
+            return v.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.username)}&background=ff3d81&color=fff&bold=true`;
+        }
+
+        function renderBoard(listId, data) {
+            const list = document.getElementById(listId);
+            list.innerHTML = data.slice(0, MAX_NAMES).map((v, i) => `
+                <li class="row-in flex items-center gap-2" style="animation-delay: ${i * 0.1}s">
+                    <span class="title-font grad-blue text-lg w-6 shrink-0">${i + 1}</span>
+                    <img src="${avatarUrl(v)}" alt="" class="w-8 h-8 rounded-full shrink-0 border-2 border-sky-400 object-cover">
+                    <div class="flex-1 min-w-0 readable">
+                        <p class="text-base font-black uppercase text-sky-200 truncate">${escapeHtml(v.username)}</p>
+                    </div>
+                    <p class="text-base font-black text-sky-400 shrink-0 readable">${Number(v.points).toLocaleString('id-ID')}</p>
+                </li>
+            `).join('');
+        }
+
+        // Initial dummy render
+        renderBoard('alltime-rows', allTimeData);
+        renderBoard('stream-rows', streamData);
+
+        // Live updates from point_process.py (every 2 minutes)
+        const socket = io();
+        socket.on('leaderboard_update', d => {
+            renderBoard('alltime-rows', d.all_time);
+            renderBoard('stream-rows', d.today);
+        });
+    </script>
+</body>
+</html>
