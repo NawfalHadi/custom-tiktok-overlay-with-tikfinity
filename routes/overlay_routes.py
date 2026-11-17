@@ -10,7 +10,13 @@ def overlay_home():
 def control_panel():
     return render_template("templates/dashboard/control.html")
 
+# =====
 
+@overlay_bp.route("/leaderboard")
+def leaderboard():
+    return render_template("templates/overlay/leaderboard.html")
+
+# =======
 @overlay_bp.route("/comments-overlay")
 def comments_overlay():
     return render_template("templates/comments.html")
