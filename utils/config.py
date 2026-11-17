@@ -24,6 +24,7 @@ DAILY_POINT_REWARD = 250
 
 # Watch time (passive points)
 WATCH_TIME_INTERVAL = 300   # 5 minutes
+LEADERBOARD_INTERVAL = 120   # 2 minutes
 WATCH_TIME_REWARD = 20
 ACTIVITY_TIMEOUT = 900      # 15 minutes
 

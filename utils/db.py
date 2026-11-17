@@ -81,7 +81,6 @@ def update_profile_picture_viewer(connection, username, new_profile_url):
     )
     return True
 
-
 def add_member(connection, viewer_id):
     """Add a viewer to tb_members. Returns True if a row was inserted."""
     cursor = connection.execute(
@@ -93,10 +92,8 @@ def add_member(connection, viewer_id):
     )
     return cursor.rowcount > 0
 
-
 def member_multiplier(is_member):
     return MEMBER_POINT_MULTIPLIER if is_member else 1.0
-
 
 def add_points(connection, viewer_id, points):
     connection.execute(
@@ -106,3 +103,20 @@ def add_points(connection, viewer_id, points):
         """,
         (viewer_id, points),
     )
+
+def get_top_viewers(connection, limit=3):
+    """Return the top viewers by total points from tb_stats."""
+    rows = connection.execute(
+        """
+        SELECT v.username, v.profile_picture_url, s.points
+        FROM tb_stats AS s
+        JOIN tb_viewers AS v ON v.id = s.id_viewer
+        ORDER BY s.points DESC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    return [
+        {"rank": i + 1, "username": r[0], "avatar": r[1] or "", "points": r[2]}
+        for i, r in enumerate(rows)
+    ]
