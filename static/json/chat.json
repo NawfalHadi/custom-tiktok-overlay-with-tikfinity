@@ -1,0 +1,148 @@
+{
+  "event": "chat",
+  "data": {
+    "comment": "gue deh🫈wkakwkw🫈",
+    "visibleToSender": false,
+    "fullScreenTextColor": "",
+    "inputType": 0,
+    "emotes": [
+      {
+        "placeInComment": 7,
+        "emote": {
+          "emoteId": "7530304928120933140",
+          "image": {
+            "imageUrl": "https://p19-webcast.tiktokcdn.com/webcast-sg/sub_4370fa609ee1245c0750c5bdf0164da0de2fe55ecff06edbc02ea57e4d25e1b4_1753285744314144~tplv-fyjuxuxag8-webp.webp"
+          }
+        }
+      }
+    ],
+    "contentLanguage": "id",
+    "quickChatScene": 0,
+    "communityflaggedStatus": 0,
+    "commentQualityScores": [
+      {
+        "version": "user_type_rule",
+        "score": "300000"
+      },
+      {
+        "version": "community-flagged",
+        "score": "3520185"
+      },
+      {
+        "version": "commentator_id",
+        "score": "7498777180740060176"
+      },
+      {
+        "version": "default",
+        "score": "1795183297381000"
+      },
+      {
+        "version": "default_app",
+        "score": "10000"
+      },
+      {
+        "version": "rankV3",
+        "score": "1795183300000099"
+      },
+      {
+        "version": "ttp_rule_rerank",
+        "score": "1795183307383000"
+      },
+      {
+        "version": "timestamp_desc",
+        "score": "98204816702617000"
+      },
+      {
+        "version": "tikcast_community_comment_18866_v7_r655069",
+        "score": "1795183300057790"
+      },
+      {
+        "version": "tikcast_community_comment_18866_v7_r655069_desc",
+        "score": "1795183309942209"
+      },
+      {
+        "version": "idc_rule_rerank",
+        "score": "1795183297382000"
+      },
+      {
+        "version": "v13_r712088",
+        "score": "1795183290195875"
+      }
+    ],
+    "userIdentity": {
+      "isGiftGiverOfAnchor": true,
+      "isSubscriberOfAnchor": false,
+      "isMutualFollowingWithAnchor": true,
+      "isFollowerOfAnchor": true,
+      "isModeratorOfAnchor": false,
+      "isAnchor": false
+    },
+    "commentTag": [
+      0
+    ],
+    "screenTime": "0",
+    "signature": "370713a4be4ae6108077ebd31985c830",
+    "signatureVersion": "v1",
+    "ecStreamerKey": "",
+    "userId": "7498777180740060176",
+    "secUid": "MS4wLjABAAAAW5SwWSpbjyH-8Fy0v5n50OzXum1YyXNj-YeB4mIE2I9C4PXAj5uzfPaDpc6oKYqp",
+    "uniqueId": "pementolan",
+    "nickname": "Komunitas Pementolan Duniawi",
+    "profilePictureUrl": "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=487121d0&x-expires=1795356000&x-signature=%2BhACWAn4B3Q0q89zkNc8e7t6eJk%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+    "followRole": 2,
+    "userBadges": [
+      {
+        "type": "image",
+        "badgeSceneType": 6,
+        "displayType": 1,
+        "url": "https://p19-webcast.tiktokcdn.com/webcast-sg/new_top_gifter_version_2.png~tplv-obj.image"
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7138381176787490596",
+        "level": 4,
+        "badgeSceneType": 8
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7196929090442513157",
+        "level": 4,
+        "badgeSceneType": 10
+      }
+    ],
+    "userSceneTypes": [
+      6,
+      8,
+      10,
+      6
+    ],
+    "userDetails": {
+      "createTime": "0",
+      "bioDescription": "",
+      "profilePictureUrls": [
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=487121d0&x-expires=1795356000&x-signature=%2BhACWAn4B3Q0q89zkNc8e7t6eJk%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktok-shrink:72:72.webp?dr=14561&refresh_token=4d3afd75&x-expires=1795356000&x-signature=Oh2zx7zFAqetvfbWskpyfp1ELXI%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktok-shrink:72:72.jpeg?dr=14561&refresh_token=45f8a89a&x-expires=1795356000&x-signature=KFK0d8pWNdIuTxMHeb7D4vDVQiw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktok-shrink:72:72.webp?dr=18049&refresh_token=5cae1120&x-expires=1795356000&x-signature=Eo28VAHaO8Gcy2nKmolaImdX4bk%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p19-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktok-shrink:72:72.webp?dr=18049&refresh_token=439bff48&x-expires=1795356000&x-signature=H4ekomG17AuQKn%2FVN%2B4aaAqyXfE%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2",
+        "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/3fe0241618b2a8e8a601af7ad28b7f72~tplv-tiktok-shrink:72:72.jpeg?dr=18049&refresh_token=455d9070&x-expires=1795356000&x-signature=%2FwNDuCTo0%2B%2FlHeZx81WYYSPwBu0%3D&t=4d5b0474&ps=ae600521&shp=a5d48078&shcp=fdd36af4&idc=my2"
+      ]
+    },
+    "followInfo": {
+      "followingCount": 23,
+      "followerCount": 89,
+      "followStatus": 2,
+      "pushStatus": 0
+    },
+    "isModerator": false,
+    "isNewGifter": false,
+    "isSubscriber": false,
+    "topGifterRank": 2,
+    "gifterLevel": 4,
+    "teamMemberLevel": 4,
+    "msgId": "7710253530485607189",
+    "createTime": "1795183297460",
+    "tikfinityUserId": "6290f8c8-d7a8-4bcb-9c20-388a4debc586",
+    "tikfinityUsername": "buergerteriyaki"
+  }
+}

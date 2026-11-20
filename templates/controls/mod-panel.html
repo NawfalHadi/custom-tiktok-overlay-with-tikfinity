@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderator Panel // Admin HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'JetBrains Mono', monospace; }
@@ -28,18 +29,19 @@
         <!-- Phone: stacked. Desktop: viewers 2 / comments 1 side by side -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-start">
 
-            <!-- VIEWERS (read-only, compact rows) -->
+            <!-- VIEWERS (read-only, compact rows, paged) -->
             <div class="md:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
                 <div class="bg-zinc-950 px-3 sm:px-4 py-3 border-b border-zinc-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                     <span class="text-xs font-bold uppercase tracking-widest text-zinc-400">Viewers <span id="viewerCount" class="text-amber-400">(0)</span></span>
-                    <input type="text" id="searchInput" placeholder="Search username..." oninput="renderViewers()"
+                    <input type="text" id="searchInput" placeholder="Search username..." oninput="onViewerSearch()"
                            class="bg-zinc-900 text-xs px-3 py-2 rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 text-white w-full sm:w-48">
                 </div>
 
-                <ul id="viewersList" class="divide-y divide-zinc-800/60 max-h-[60vh] md:max-h-[75vh] overflow-y-auto"></ul>
+                <ul id="viewersList" class="divide-y divide-zinc-800/60"></ul>
+                <div id="viewerPager"></div>
             </div>
 
-            <!-- COMMENTS (with show trigger) -->
+            <!-- COMMENTS (with show trigger, paged) -->
             <div class="md:col-span-1 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
                 <div class="bg-zinc-950 px-3 sm:px-4 py-3 border-b border-zinc-800 flex justify-between items-center gap-2">
                     <span class="text-xs font-bold uppercase tracking-widest text-zinc-400">Comments <span id="commentCount" class="text-amber-400">(0)</span></span>
@@ -54,83 +56,167 @@
                     <p id="onScreenText" class="text-xs text-zinc-500 italic break-words">Nothing shown.</p>
                 </div>
 
-                <ul id="commentList" class="divide-y divide-zinc-800/60 overflow-y-auto max-h-[50vh] md:max-h-[70vh]"></ul>
+                <ul id="commentList" class="divide-y divide-zinc-800/60"></ul>
+                <div id="commentPager"></div>
             </div>
 
         </div>
     </div>
 
     <script>
-        // Static data for now
-        const viewers = [
-            { id: 1, username: 'KesatriaBiru',  verified: true,  points: 128500, member: true,  role: 'VIP',       joined: '2026-01-12' },
-            { id: 2, username: 'DewiSenja',     verified: true,  points: 97200,  member: true,  role: 'Moderator', joined: '2026-02-03' },
-            { id: 3, username: 'GarudaMuda',    verified: false, points: 85040,  member: false, role: '-',         joined: '2026-03-18' },
-            { id: 4, username: 'ArjunaID',      verified: true,  points: 71310,  member: true,  role: '-',         joined: '2026-04-22' },
-            { id: 5, username: 'LangitTerang',  verified: true,  points: 4200,   member: false, role: '-',         joined: '2026-09-07' },
-            { id: 6, username: 'PasirPutih',    verified: false, points: 3100,   member: false, role: '-',         joined: '2026-10-15' },
-            { id: 7, username: 'RajaKecil',     verified: true,  points: 1900,   member: false, role: '-',         joined: '2026-11-01' }
-        ];
+        const PER_PAGE = 10;
+        const MAX_COMMENTS = 50;
 
-        const comments = [
-            { id: 101, username: 'LangitTerang', message: 'Gas terus kak, semangat live-nya!', time: '20:14' },
-            { id: 102, username: 'PasirPutih',   message: 'Halo dari Banjarmasin',              time: '20:15' },
-            { id: 103, username: 'RajaKecil',    message: 'Suara kakak jelas banget hari ini',  time: '20:17' },
-            { id: 104, username: 'DewiSenja',    message: 'Kapan giveaway berikutnya?',         time: '20:19' }
-        ];
-
+        // Live data
+        let viewers = [];
+        let comments = [];          // newest first
         let shownCommentId = null;
+
+        // Current page for each list
+        const pages = { viewers: 1, comments: 1 };
 
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        // Compact row: name on top, small meta line below (wraps on phone), points on the right
+        // Text segments and emote images, in order
+        function renderSegments(segments, fallback) {
+            if (!segments || segments.length === 0) return escapeHtml(fallback);
+            return segments.map(seg => seg.type === 'emote'
+                ? `<img src="${escapeHtml(seg.url)}" alt="emote" class="inline-block h-6 w-6 align-middle">`
+                : escapeHtml(seg.value)
+            ).join('');
+        }
+
+        // Prev / Next footer. name = 'viewers' or 'comments'
+        function pagerHtml(name, page, totalPages) {
+            return `
+                <div class="flex items-center justify-between px-3 sm:px-4 py-2.5 border-t border-zinc-800 bg-zinc-950">
+                    <button onclick="changePage('${name}', -1)" ${page <= 1 ? 'disabled' : ''}
+                            class="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-800 rounded-lg text-[10px] font-bold text-cyan-400 transition-all">
+                        &larr; PREV
+                    </button>
+                    <span class="text-[10px] font-bold text-amber-400">${page} / ${totalPages}</span>
+                    <button onclick="changePage('${name}', 1)" ${page >= totalPages ? 'disabled' : ''}
+                            class="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-800 rounded-lg text-[10px] font-bold text-cyan-400 transition-all">
+                        NEXT &rarr;
+                    </button>
+                </div>
+            `;
+        }
+
+        function changePage(name, delta) {
+            pages[name] += delta;
+            if (name === 'viewers') renderViewers();
+            else renderComments();
+        }
+
+        // ---------- VIEWERS ----------
+
+        async function fetchViewers() {
+            try {
+                const res = await fetch('/api/moderator/viewers?page=1&per_page=100');
+                const result = await res.json();
+                const roles = result.roles || [];
+
+                viewers = (result.data || []).map(v => ({
+                    id: v.id,
+                    username: v.username,
+                    verified: !v.is_unowned,
+                    points: v.points || 0,
+                    member: !!v.is_member,
+                    role: (roles.find(r => r.id === v.id_role) || {}).roles_name || '-',
+                    joined: (v.created_at || '').slice(0, 10)
+                }));
+                renderViewers();
+            } catch (err) {
+                console.error('Failed to fetch viewers:', err);
+            }
+        }
+
+        function onViewerSearch() {
+            pages.viewers = 1;
+            renderViewers();
+        }
+
         function renderViewers() {
             const q = document.getElementById('searchInput').value.trim().toLowerCase();
-            const list = viewers.filter(v => v.username.toLowerCase().includes(q));
-            document.getElementById('viewerCount').textContent = `(${list.length})`;
+            const filtered = viewers.filter(v => v.username.toLowerCase().includes(q));
+            document.getElementById('viewerCount').textContent = `(${filtered.length})`;
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+            pages.viewers = Math.min(Math.max(1, pages.viewers), totalPages);
+            const start = (pages.viewers - 1) * PER_PAGE;
+            const pageItems = filtered.slice(start, start + PER_PAGE);
 
             const ul = document.getElementById('viewersList');
-            if (list.length === 0) {
+            if (pageItems.length === 0) {
                 ul.innerHTML = `<li class="py-6 text-center text-xs text-zinc-500">No viewers found.</li>`;
-                return;
+            } else {
+                ul.innerHTML = pageItems.map(v => {
+                    const account = v.verified
+                        ? '<span class="text-cyan-400">Verified</span>'
+                        : '<span class="text-red-400">Unowned</span>';
+                    const member = v.member
+                        ? '<span class="text-emerald-400">MEMBER</span>'
+                        : '<span class="text-zinc-500">NON-MEMBER</span>';
+
+                    return `
+                        <li class="px-3 sm:px-4 py-2.5 hover:bg-zinc-800/40 transition-colors flex justify-between items-center gap-3">
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-white truncate">${escapeHtml(v.username)}</p>
+                                <p class="text-[10px] leading-relaxed text-zinc-500">
+                                    <span class="font-mono">#${v.id}</span> · ${account} · ${member} · Role: ${escapeHtml(v.role)} · ${v.joined}
+                                </p>
+                            </div>
+                            <p class="text-sm font-black text-amber-400 shrink-0 whitespace-nowrap">${Number(v.points).toLocaleString()} <span class="text-[10px] font-bold">PTS</span></p>
+                        </li>
+                    `;
+                }).join('');
             }
 
-            ul.innerHTML = list.map(v => {
-                const account = v.verified
-                    ? '<span class="text-cyan-400">Verified</span>'
-                    : '<span class="text-red-400">Unowned</span>';
-                const member = v.member
-                    ? '<span class="text-emerald-400">MEMBER</span>'
-                    : '<span class="text-zinc-500">NON-MEMBER</span>';
+            document.getElementById('viewerPager').innerHTML = pagerHtml('viewers', pages.viewers, totalPages);
+        }
 
-                return `
-                    <li class="px-3 sm:px-4 py-2.5 hover:bg-zinc-800/40 transition-colors flex justify-between items-center gap-3">
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-white truncate">${escapeHtml(v.username)}</p>
-                            <p class="text-[10px] leading-relaxed text-zinc-500">
-                                <span class="font-mono">#${v.id}</span> · ${account} · ${member} · Role: ${escapeHtml(v.role)} · ${v.joined}
-                            </p>
-                        </div>
-                        <p class="text-sm font-black text-amber-400 shrink-0 whitespace-nowrap">${Number(v.points).toLocaleString()} <span class="text-[10px] font-bold">PTS</span></p>
-                    </li>
-                `;
-            }).join('');
+        // ---------- COMMENTS ----------
+
+        function addComment(c) {
+            comments.unshift(c);
+            if (comments.length > MAX_COMMENTS) comments.pop();
+            renderComments();
         }
 
         function renderComments() {
             document.getElementById('commentCount').textContent = `(${comments.length})`;
             const list = document.getElementById('commentList');
+            const pager = document.getElementById('commentPager');
 
-            list.innerHTML = comments.map(c => {
+            if (comments.length === 0) {
+                list.innerHTML = `<li class="py-6 text-center text-xs text-zinc-500">Waiting for comments...</li>`;
+                pager.innerHTML = '';
+                renderOnScreen();
+                return;
+            }
+
+            const totalPages = Math.max(1, Math.ceil(comments.length / PER_PAGE));
+            pages.comments = Math.min(Math.max(1, pages.comments), totalPages);
+            const start = (pages.comments - 1) * PER_PAGE;
+            const pageItems = comments.slice(start, start + PER_PAGE);
+
+            list.innerHTML = pageItems.map(c => {
                 const isShown = c.id === shownCommentId;
                 return `
                     <li class="px-3 sm:px-4 py-3 ${isShown ? 'bg-cyan-500/10' : 'hover:bg-zinc-800/40'} transition-colors">
                         <div class="flex justify-between items-start gap-3">
                             <div class="min-w-0">
-                                <p class="text-xs font-bold text-white">${escapeHtml(c.username)} <span class="text-zinc-600 font-normal ml-1">${c.time}</span></p>
-                                <p class="text-xs text-zinc-300 mt-1 break-words">${escapeHtml(c.message)}</p>
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <img src="${escapeHtml(c.avatarUrl || '')}" class="w-5 h-5 rounded-full object-cover shrink-0" onerror="this.style.display='none'">
+                                    <p class="text-xs font-bold text-white truncate">${escapeHtml(c.username)} <span class="text-zinc-600 font-normal ml-1">${c.time}</span></p>
+                                </div>
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    ${(c.badges || []).map(b => `<span class="px-1.5 py-0.5 bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded text-[9px] font-bold">${escapeHtml(b)}</span>`).join('')}
+                                </div>
+                                <p class="text-xs text-zinc-300 mt-1 break-words">${renderSegments(c.segments, c.message)}</p>
                             </div>
                             <button onclick="showComment(${c.id})"
                                     class="shrink-0 px-3 py-2 ${isShown ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-zinc-200'} active:scale-95 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all">
@@ -141,6 +227,7 @@
                 `;
             }).join('');
 
+            pager.innerHTML = pagerHtml('comments', pages.comments, totalPages);
             renderOnScreen();
         }
 
@@ -148,11 +235,11 @@
             const box = document.getElementById('onScreenText');
             const c = comments.find(x => x.id === shownCommentId);
             box.innerHTML = c
-                ? `<span class="text-white font-bold">${escapeHtml(c.username)}:</span> ${escapeHtml(c.message)}`
+                ? `<span class="text-white font-bold">${escapeHtml(c.username)}:</span> ${renderSegments(c.segments, c.message)}`
                 : `<span class="text-zinc-500 italic">Nothing shown.</span>`;
         }
 
-        // Trigger: set the comment as on screen (static for now, no overlay yet)
+        // Trigger: set the comment as on screen (no overlay wiring yet)
         function showComment(id) {
             shownCommentId = id;
             renderComments();
@@ -163,8 +250,14 @@
             renderComments();
         }
 
-        renderViewers();
+        // ---------- INIT ----------
+
+        const socket = io();
+        socket.on('new_comment', addComment);
+
         renderComments();
+        fetchViewers();
+        setInterval(fetchViewers, 60000);
     </script>
 </body>
 </html>

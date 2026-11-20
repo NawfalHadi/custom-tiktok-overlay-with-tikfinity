@@ -1,4 +1,5 @@
 import time
+from utils.extensions import socketio
 import requests
 
 
@@ -17,6 +18,59 @@ sio = create_client(LABEL)
 points_cooldown = {}
 COOLDOWN_DURATION = 10  # Waktu tenggang (10 seconds per user)
 
+def emit_comment(data, user, avatar):
+    """Send a chat message, with emotes and badges, to the moderator panel."""
+    msg = data.get("comment", "")
+    socketio.emit("new_comment", {
+        "id": int(time.time() * 1000),
+        "username": user,
+        "message": msg,
+        "avatarUrl": avatar,
+        "segments": build_segments(msg, build_emotes(data)),
+        "badges": build_badges(data),
+    })
+
+def build_emotes(data):
+    """Collect emote images and their positions in the message."""
+    emotes = []
+    for e in data.get("emotes") or []:
+        url = ((e.get("emote") or {}).get("image") or {}).get("imageUrl", "")
+        if url:
+            emotes.append({"position": int(e.get("placeInComment", 0)), "url": url})
+    return emotes
+
+
+def build_segments(text, emotes):
+    """Split the message into text and emote parts, in order."""
+    segments, last = [], 0
+    for e in sorted(emotes, key=lambda x: x["position"]):
+        pos = min(max(e["position"], 0), len(text))
+        if pos > last:
+            segments.append({"type": "text", "value": text[last:pos]})
+        segments.append({"type": "emote", "url": e["url"]})
+        last = pos
+    if last < len(text):
+        segments.append({"type": "text", "value": text[last:]})
+    return segments
+
+
+def build_badges(data):
+    """Short labels for the viewer's status, shown next to their name."""
+    identity = data.get("userIdentity") or {}
+    badges = []
+    if identity.get("isAnchor"):
+        badges.append("HOST")
+    if data.get("isModerator") or identity.get("isModeratorOfAnchor"):
+        badges.append("MOD")
+    if data.get("isSubscriber") or identity.get("isSubscriberOfAnchor"):
+        badges.append("SUB")
+    if identity.get("isGiftGiverOfAnchor"):
+        badges.append("GIFTER")
+    if data.get("topGifterRank"):
+        badges.append(f"TOP {data['topGifterRank']}")
+    if data.get("gifterLevel"):
+        badges.append(f"LV {data['gifterLevel']}")
+    return badges
 
 def join_viewer(user, profile_url):
     """Save a viewer and initialize their stats unless they already exist."""
@@ -39,7 +93,6 @@ def change_profile_picture(user, new_profile_url):
         print(f"-> [SUCCESS] Updated profile picture for '{user}'")
     except Exception as error:
         print(f"-> [DATABASE ERROR] Failed to update profile picture for '{user}': {error}")
-
 
 def handle_points_command(user, profile_url):
     current_time = time.time()
@@ -83,7 +136,6 @@ def handle_points_command(user, profile_url):
     except requests.RequestException as error:
         print(f"-> [POINTS HTTP ERROR] {error}")
 
-
 @sio.on("tiktok_event")
 def on_tiktok_event(res):
     if not res:
@@ -97,6 +149,7 @@ def on_tiktok_event(res):
     if event == "chat":
         msg = data.get("comment", "")
         print(f"-> [SOCKET.IO CHAT] {user}: {msg}")
+        emit_comment(data, user, profile_url)
 
         if "!join" in msg.lower():
             join_viewer(user, profile_url)
@@ -129,7 +182,6 @@ def on_tiktok_event(res):
     elif event == "member":
         if data.get("uniqueId"):
             print(f"-> [SOCKET.IO MEMBER] '{user}' joined the stream.")
-
 
 def run_message_process():
     run_forever(sio, LABEL)

@@ -101,7 +101,13 @@ def api_get_viewers():
 @roles_allowed(1, 2)  # 1 = admin, 2 = moderator
 def moderator_control_panel():
     """Renders the moderator panel (moderator-panel.html)."""
-    return render_template("templates/controls/moderator-panel.html")
+    return render_template("templates/controls/mod-panel.html")
+
+@dashboard_bp.route("/api/moderator/viewers", methods=["GET"])
+@roles_allowed(1, 2)  # admin + moderator, read-only
+def api_moderator_viewers():
+    """Read-only viewers list for the moderator panel (same data as admin, no mutations)."""
+    return jsonify(get_admin_viewers_data(request.args))
 
 # --- MUTATION / EDIT ROUTES (DIKUNCI: Wajib Role 1) ---
 
