@@ -62,6 +62,20 @@ def role_required(required_role=1):
         return decorated_function
     return decorator
 
+def roles_allowed(*allowed_roles):
+    """Page access: must be logged in and have one of the allowed roles."""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if "user_id" not in session:
+                return redirect("/login")
+            if session.get("id_role") not in allowed_roles:
+                return "Access denied", 403
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# --- ADMIN ROUTES ---
 
 @dashboard_bp.route("/dashboard/alerting")
 def dashboard_alerting():
@@ -80,6 +94,14 @@ def api_get_viewers():
     """
     result = get_admin_viewers_data(request.args)
     return jsonify(result)
+
+# -- MODERATOR ROUTES (DIKUNCI: Wajib Role 1 & 2) ---
+
+@dashboard_bp.route("/moderator/control")
+@roles_allowed(1, 2)  # 1 = admin, 2 = moderator
+def moderator_control_panel():
+    """Renders the moderator panel (moderator-panel.html)."""
+    return render_template("templates/controls/moderator-panel.html")
 
 # --- MUTATION / EDIT ROUTES (DIKUNCI: Wajib Role 1) ---
 

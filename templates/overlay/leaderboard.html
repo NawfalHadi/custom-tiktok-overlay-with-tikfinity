@@ -66,6 +66,19 @@
             100% { transform: translateX(0); opacity: 1; }
         }
         .row-in { opacity: 0; animation: rowIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .join-prompt {
+            margin-top: 1rem;
+            color: var(--white);
+            font-size: 0.85rem;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            text-align: center;
+        }
+
+        .join-command {
+            color: var(--yellow);
+        }
     </style>
 </head>
 <body class="relative">
@@ -84,6 +97,8 @@
             <h2 class="title-font grad-blue text-base mb-2">PRAJURIT HARI INI</h2>
             <ul id="stream-rows" class="flex flex-col gap-2"></ul>
         </div>
+
+        <p class="join-prompt readable">FOLLOW ATAU KETIK <span class="join-command">!JOIN</span> UNTUK JADI KESATRIA</p>
 
     </div>
 
@@ -105,7 +120,8 @@
             { username: 'RajaKecil',    points: 1900, avatar: '' }
         ];
 
-        const MAX_NAMES = 3;
+        const ALL_TIME_MAX_NAMES = 3;
+        const STREAM_MAX_NAMES = 5;
 
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -116,9 +132,9 @@
             return v.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.username)}&background=ff3d81&color=fff&bold=true`;
         }
 
-        function renderBoard(listId, data) {
+        function renderBoard(listId, data, maxNames) {
             const list = document.getElementById(listId);
-            list.innerHTML = data.slice(0, MAX_NAMES).map((v, i) => `
+            list.innerHTML = data.slice(0, maxNames).map((v, i) => `
                 <li class="row-in flex items-center gap-2" style="animation-delay: ${i * 0.1}s">
                     <span class="title-font grad-blue text-lg w-6 shrink-0">${i + 1}</span>
                     <img src="${avatarUrl(v)}" alt="" class="w-8 h-8 rounded-full shrink-0 border-2 border-sky-400 object-cover">
@@ -131,14 +147,14 @@
         }
 
         // Initial dummy render
-        renderBoard('alltime-rows', allTimeData);
-        renderBoard('stream-rows', streamData);
+        renderBoard('alltime-rows', allTimeData, ALL_TIME_MAX_NAMES);
+        renderBoard('stream-rows', streamData, STREAM_MAX_NAMES);
 
         // Live updates from point_process.py (every 2 minutes)
         const socket = io();
         socket.on('leaderboard_update', d => {
-            renderBoard('alltime-rows', d.all_time);
-            renderBoard('stream-rows', d.today);
+            renderBoard('alltime-rows', d.all_time, ALL_TIME_MAX_NAMES);
+            renderBoard('stream-rows', d.today, STREAM_MAX_NAMES);
         });
     </script>
 </body>
