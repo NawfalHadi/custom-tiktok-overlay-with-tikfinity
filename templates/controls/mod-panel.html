@@ -241,12 +241,17 @@
 
         // Trigger: set the comment as on screen (no overlay wiring yet)
         function showComment(id) {
+            const comment = comments.find(c => c.id === id);
+            if (!comment) return;
+
             shownCommentId = id;
+            socket.emit('show_comment', comment);
             renderComments();
         }
 
         function clearShown() {
             shownCommentId = null;
+            socket.emit('hide_comment', {});
             renderComments();
         }
 

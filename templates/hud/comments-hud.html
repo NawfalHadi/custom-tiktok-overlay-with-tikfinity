@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Overlay - DGCB HUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:ital,wght@0,600;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #07070a;
+            --acid: #e6ff1a;
+            --cyan: #00f0ff;
+            --red: #ff2d3d;
+            --oct: polygon(14% 0, 86% 0, 100% 14%, 100% 86%, 86% 100%, 14% 100%, 0 86%, 0 14%);
+            --badge-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+            --ribbon-clip: polygon(0 0, 100% 0, 92% 100%, 0 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Saira Extra Condensed', 'Arial Narrow', sans-serif;
+            background: transparent;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Octagon avatar */
+        .avatar-oct-frame {
+            width: 72px;
+            height: 72px;
+            padding: 3px;
+            clip-path: var(--oct);
+            background: linear-gradient(135deg, var(--acid) 0%, #1c1c24 50%, var(--cyan) 100%);
+            box-shadow: 0 0 20px rgba(230, 255, 26, 0.4);
+            flex-shrink: 0;
+        }
+        .avatar-oct-inner { width: 100%; height: 100%; clip-path: var(--oct); background: #000; }
+
+        /* Badges and ribbons */
+        .hud-badge {
+            clip-path: var(--badge-clip);
+            font-style: italic;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+        .hud-ribbon { clip-path: var(--ribbon-clip); }
+
+        /* CRT scanlines */
+        .scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* Ticker */
+        @keyframes tickerScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-content {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: tickerScroll 12s linear infinite reverse;
+        }
+
+        /* Pop in / out */
+        @keyframes slideUp {
+            0%   { transform: translateY(40px); opacity: 0; }
+            70%  { transform: translateY(-4px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideDown {
+            0%   { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(30px); opacity: 0; }
+        }
+        .pop-in  { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .pop-out { animation: slideDown 0.35s ease-in forwards; }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-end items-start p-8">
+
+    <!-- COMMENT WIDGET (hidden until triggered) -->
+    <div id="comment-widget" class="hidden relative flex flex-col w-[640px] max-w-[90vw] gap-1">
+
+        <!-- MAIN BAR -->
+        <div class="relative flex items-center gap-3 w-full min-h-20 bg-zinc-950/90 border-y-2 border-[var(--acid)] px-3 py-2 shadow-2xl transform -skew-x-12 origin-left">
+            <div class="absolute inset-0 scanlines opacity-40"></div>
+
+            <!-- OCTAGON AVATAR -->
+            <div class="relative z-20 transform skew-x-12 -ml-1">
+                <div class="avatar-oct-frame relative">
+                    <div class="avatar-oct-inner">
+                        <img id="avatar" src="" alt="" class="w-full h-full object-cover contrast-125" onerror="this.style.display='none'">
+                    </div>
+                    <div class="hud-badge absolute -bottom-2 -right-1 bg-[var(--acid)] text-black text-[9px] px-1.5 tracking-wider shadow-md">
+                        COMMENT
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIBBON -->
+            <div class="hud-ribbon bg-gradient-to-r from-[var(--acid)] to-yellow-400 text-black px-4 py-2 flex flex-col justify-center items-center font-black italic tracking-tight shadow-lg border-r-2 border-black shrink-0">
+                <span class="text-[9px] tracking-widest uppercase leading-none text-zinc-900">LIVE</span>
+                <span class="text-xl leading-none text-black">CHAT</span>
+            </div>
+
+            <!-- USERNAME, BADGES, MESSAGE -->
+            <div class="flex-1 min-w-0 transform skew-x-12 pr-4 relative z-10">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span id="username" class="text-[var(--acid)] font-black italic text-xl tracking-wide uppercase truncate"></span>
+                    <span id="badges" class="flex flex-wrap gap-1"></span>
+                </div>
+                <div id="message" class="text-white font-bold text-2xl leading-snug break-words mt-1"></div>
+            </div>
+
+            <!-- TIME BADGE -->
+            <div class="relative z-30 transform skew-x-12 shrink-0 mr-2">
+                <div class="hud-badge bg-[var(--red)] text-white font-black italic text-sm px-2.5 py-1 border border-black shadow-lg">
+                    <span id="time"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM TICKER -->
+        <div class="w-full h-5 bg-black/95 border-b border-[var(--cyan)] flex items-center overflow-hidden shadow-xl transform -skew-x-12 origin-left">
+            <div class="ticker-content text-[var(--cyan)] font-black italic tracking-[0.25em] text-[10px] uppercase">
+                ⚡ KOMENTAR LIVE /// DGCB HUD /// TERIMA KASIH SUDAH NONTON /// KOMENTAR LIVE /// DGCB HUD /// TERIMA KASIH SUDAH NONTON ///
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DISPLAY_MS = 8000;   // how long it stays before auto-hiding
+        const ANIM_OUT_MS = 350;
+
+        const widget = document.getElementById('comment-widget');
+        let hideTimer = null;
+        let outTimer = null;
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Text segments and emote images, in order
+        function renderSegments(segments, fallback) {
+            if (!segments || segments.length === 0) return escapeHtml(fallback || '');
+            return segments.map(seg => seg.type === 'emote'
+                ? `<img src="${escapeHtml(seg.url)}" alt="emote" class="inline-block h-8 w-8 align-middle">`
+                : escapeHtml(seg.value)
+            ).join('');
+        }
+
+        function showComment(c) {
+            clearTimeout(hideTimer);
+            clearTimeout(outTimer);
+
+            document.getElementById('username').textContent = `@${(c.username || '').toUpperCase()}`;
+            document.getElementById('time').textContent = c.time || '';
+
+            const avatar = document.getElementById('avatar');
+            avatar.style.display = '';
+            avatar.src = c.avatarUrl || '';
+
+            document.getElementById('badges').innerHTML = (c.badges || []).map(b =>
+                `<span class="hud-badge bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/50 text-[10px] px-2 py-0.5">${escapeHtml(b)}</span>`
+            ).join('');
+
+            document.getElementById('message').innerHTML = renderSegments(c.segments, c.message);
+
+            // Restart the entrance animation
+            widget.classList.remove('hidden', 'pop-out', 'pop-in');
+            void widget.offsetWidth;
+            widget.classList.add('pop-in');
+
+            hideTimer = setTimeout(hideComment, DISPLAY_MS);
+        }
+
+        function hideComment() {
+            clearTimeout(hideTimer);
+            if (widget.classList.contains('hidden')) return;
+            widget.classList.remove('pop-in');
+            widget.classList.add('pop-out');
+            outTimer = setTimeout(() => widget.classList.add('hidden'), ANIM_OUT_MS);
+        }
+
+        // Live triggers from the moderator panel (via server relay)
+        const socket = io();
+        socket.on('show_comment', showComment);
+        socket.on('hide_comment', hideComment);
+
+        // Testing: Space = demo comment, H = hide
+        const demo = {
+            username: 'LangitTerang',
+            time: '20:14',
+            avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+            badges: ['TOP 2', 'LV 4'],
+            message: 'Gas terus kak, semangat live-nya!',
+            segments: [{ type: 'text', value: 'Gas terus kak, semangat live-nya!' }]
+        };
+        // Static test: show the demo comment once when the page loads
+        window.addEventListener('load', () => setTimeout(() => showComment(demo), 500));
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space') { e.preventDefault(); showComment(demo); }
+            if (e.key.toLowerCase() === 'h') hideComment();
+        });
+    </script>
+</body>
+</html>

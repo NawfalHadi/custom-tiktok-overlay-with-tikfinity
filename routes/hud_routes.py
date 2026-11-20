@@ -28,3 +28,8 @@ def info_page():
 @hud_bp.route("/points-hud")
 def points_check_hud_page():
     return render_template("templates/hud/points-hud.html")
+
+@hud_bp.route("/comments-hud")
+def comments_hud_page():
+    """Comments HUD overlay."""
+    return render_template("templates/hud/comments-hud.html")

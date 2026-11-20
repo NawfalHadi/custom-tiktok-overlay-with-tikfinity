@@ -43,3 +43,11 @@ def trigger_msg_alert():
 @alert_bp.route("/msg-alert")
 def msg_alert_overlay():
     return render_template("templates/alert/message_alert.html")
+
+@socketio.on("show_comment")
+def relay_show_comment(data):
+    socketio.emit("show_comment", data)
+
+@socketio.on("hide_comment")
+def relay_hide_comment(_=None):
+    socketio.emit("hide_comment", {})
